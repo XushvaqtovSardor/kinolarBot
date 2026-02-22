@@ -14,14 +14,14 @@ echo "✅ Scriptlarga permission berildi"
 
 # 3. Docker containerlarni rebuild qilish
 echo "🔄 Docker containerlarni qayta ishga tushirish..."
-docker-compose down
-docker-compose up -d --build
+docker compose down
+docker compose up -d --build
 
 echo ""
 echo "✅ Backup tizimi muvaffaqiyatli sozlandi!"
 echo ""
 echo "📋 Keyingi qadamlar:"
-echo "  1. Containerlar loglarini kuzatish: docker-compose logs -f backup"
+echo "  1. Containerlar loglarini kuzatish: docker compose logs -f backup"
 echo "  2. Manual backup: ./scripts/manual-backup.sh"
 echo "  3. Backuplarni ko'rish: ls -lh backups/"
 echo ""

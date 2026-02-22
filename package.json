@@ -23,11 +23,11 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:deploy": "prisma migrate deploy",
     "prisma:studio": "prisma studio",
-    "docker:dev": "docker-compose up -d postgres",
-    "docker:up": "docker-compose up -d",
-    "docker:down": "docker-compose down",
-    "docker:logs": "docker-compose logs -f bot",
-    "docker:build": "docker-compose build --no-cache"
+    "docker:dev": "docker compose up -d postgres",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f bot",
+    "docker:build": "docker compose build --no-cache"
   },
   "engines": {
     "node": ">=20.0.0"

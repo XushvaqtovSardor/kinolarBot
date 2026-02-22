@@ -116,13 +116,13 @@ cp .env.example .env
 nano .env  # Konfiguratsiya
 
 # Docker bilan start
-docker-compose up -d
+docker compose up -d
 
 # Status tekshirish
-docker-compose ps
+docker compose ps
 
 # Loglar
-docker-compose logs -f
+docker compose logs -f
 ```
 
 ## 🗄️ Database Backup & Restore
@@ -145,7 +145,7 @@ ls -lht backups/
 ./scripts/manual-restore.sh kino_db_backup_20260223_143000.sql.gz
 
 # 3. ⚠️ MUHIM: Botni qayta ishga tushirish
-docker-compose restart app
+docker compose restart app
 ```
 
 **⚠️ ESLATMA:** Restore qilgandan keyin **ALBATTA** botni qayta ishga tushiring!

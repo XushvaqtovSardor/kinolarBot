@@ -13,23 +13,22 @@ if ! docker ps | grep -q kino_database; then
   echo "❌ Xatolik: kino_database container ishlamayapti!"
   echo ""
   echo "Container ishga tushirish:"
-  echo "  docker-compose up -d db"
+  echo "  docker compose up -d db"
   exit 1
 fi
 
 # Docker container ichida backup scriptini ishga tushirish
-docker exec kino_database /bin/bash -c '
+docker exec kino_database /bin/bash -c "
   BACKUP_DIR=/backups
   RETENTION_DAYS=180
-  TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
-  BACKUP_FILE="kino_db_backup_${TIMESTAMP}.sql.gz"
-  BACKUP_PATH="${BACKUP_DIR}/${BACKUP_FILE}"
-  
-  mkdir -p ${BACKUP_DIR}
-  
-  echo "📁 Fayl: ${BACKUP_FILE}"
-  
-  # Backup yaratish (verbose output stderr ga, uni ignore qilamiz)
+  TIMESTAMP=\$(date +\"%Y%m%d_%H%M%S\")
+  BACKUP_FILE=\"kino_db_backup_\${TIMESTAMP}.sql.gz\"
+  BACKUP_PATH=\"\${BACKUP_DIR}/\${BACKUP_FILE}\"
+
+  mkdir -p \${BACKUP_DIR}
+
+  echo \"📁 Fayl: \${BACKUP_FILE}\"
+
   PGPASSWORD=12345 pg_dump \
     -h localhost \
     -U postgres \
@@ -39,25 +38,23 @@ docker exec kino_database /bin/bash -c '
     --no-acl \
     --clean \
     --if-exists \
-    --verbose \
-    2>/dev/null | gzip -9 > ${BACKUP_PATH}
-  
-  # Integrity test
-  if ! gzip -t ${BACKUP_PATH} 2>/dev/null; then
-    echo "❌ Xatolik: Backup fayli buzilgan!"
-    rm -f ${BACKUP_PATH}
+    --verbose 2>/dev/null | gzip -9 > \${BACKUP_PATH}
+
+  if ! gzip -t \${BACKUP_PATH} 2>/dev/null; then
+    echo \"❌ Xatolik: Backup fayli buzilgan!\"
+    rm -f \${BACKUP_PATH}
     exit 1
   fi
-  
-  BACKUP_SIZE=$(du -h ${BACKUP_PATH} | cut -f1)
-  echo "✅ Backup yaratildi: ${BACKUP_SIZE}"
-  
-  # Eski backuplarni tozalash (180 kundan eski)
+
+  BACKUP_SIZE=\$(du -h \${BACKUP_PATH} | cut -f1)
+  echo \"✅ Backup yaratildi: \${BACKUP_SIZE}\"
+
+  # Eski backuplarni o'chirish
   if command -v find >/dev/null 2>&1; then
-    OLD_COUNT=$(find ${BACKUP_DIR} -name "kino_db_backup_*.sql.gz" -type f -mtime +"${RETENTION_DAYS}" 2>/dev/null | wc -l)
-    if [ "${OLD_COUNT}" -gt 0 ]; then
-      find ${BACKUP_DIR} -name "kino_db_backup_*.sql.gz" -type f -mtime +"${RETENTION_DAYS}" -exec rm -f {} \\; 2>/dev/null || true
-      echo "Ochirildi: ${OLD_COUNT} ta eski backup"
+    OLD_COUNT=\$(find \${BACKUP_DIR} -name 'kino_db_backup_*.sql.gz' -type f -mtime +\${RETENTION_DAYS} 2>/dev/null | wc -l)
+    if [ \"\${OLD_COUNT}\" -gt 0 ]; then
+      find \${BACKUP_DIR} -name 'kino_db_backup_*.sql.gz' -type f -mtime +\${RETENTION_DAYS} -exec rm -f {} \; 2>/dev/null || true
+      echo \"Ochirildi: \${OLD_COUNT} ta eski backup\"
     fi
   fi
 "

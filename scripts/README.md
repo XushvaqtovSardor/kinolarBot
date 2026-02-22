@@ -38,7 +38,7 @@ ls -lht backups/
 ./scripts/manual-restore.sh kino_db_backup_20260223_143000.sql.gz
 
 # 3. MUHIM: Botni qayta ishga tushirish
-docker-compose restart app
+docker compose restart app
 ```
 
 ### Test Qilish
@@ -67,7 +67,7 @@ cat RESTORE_GUIDE.md
 
 1. **Restore qilgandan keyin botni ALBATTA qayta ishga tushiring:**
    ```bash
-   docker-compose restart app
+   docker compose restart app
    ```
 
 2. **Restore qilishdan oldin yangi backup yarating:**

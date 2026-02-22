@@ -34,7 +34,7 @@ if ! docker ps | grep -q kino_database; then
   echo "❌ Xatolik: kino_database container ishlamayapti!"
   echo ""
   echo "Container ishga tushirish:"
-  echo "  docker-compose up -d db"
+  echo "  docker compose up -d db"
   exit 1
 fi
 
@@ -118,11 +118,11 @@ if [ $? -eq 0 ]; then
   echo "⚠️  ESLATMA: Botni qayta ishga tushirish tavsiya etiladi"
   echo ""
   echo "Bot qayta ishga tushirish:"
-  echo "  docker-compose restart app"
+  echo "  docker compose restart app"
   echo ""
   echo "Yoki to'liq qayta build:"
-  echo "  docker-compose down"
-  echo "  docker-compose up -d"
+  echo "  docker compose down"
+  echo "  docker compose up -d"
 else
   echo ""
   echo "❌ Restore xatoligi!"

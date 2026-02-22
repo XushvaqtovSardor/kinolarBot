@@ -10,7 +10,7 @@ echo ""
 
 # Ranglar
 RED='\033[0;31m'
-GREEN='\033[0;32m'
+GREEN='\033[0;32m'  
 YELLOW='\033[1;33m'
 NC='\033[0m'
 
@@ -19,7 +19,7 @@ if ! docker ps | grep -q kino_database; then
   echo -e "${RED}❌ kino_database container ishlamayapti!${NC}"
   echo ""
   echo "Container ishga tushirish:"
-  echo "  docker-compose up -d db"
+  echo "  docker compose up -d db"
   exit 1
 fi
 
@@ -78,14 +78,14 @@ if [ "$TABLE_COUNT" -eq 0 ]; then
   echo -e "${YELLOW}⚠️  Database bo'sh! Prisma migrationsni ishga tushirish tavsiya etiladi.${NC}"
   echo ""
   echo "Prisma migrations:"
-  echo "  docker-compose exec app npx prisma migrate deploy"
+  echo "  docker compose exec app npx prisma migrate deploy"
   echo ""
   read -p "Prisma migrationsni avtomatik ishga tushirish? (yes/no): " -r
   echo
   
   if [[ $REPLY =~ ^[Yy]es$ ]]; then
     echo "🔄 Prisma migrationsni ishga tushirish..."
-    docker-compose exec app npx prisma migrate deploy
+    docker compose exec app npx prisma migrate deploy
     
     if [ $? -eq 0 ]; then
       echo -e "${GREEN}✅ Migrations muvaffaqiyatli${NC}"
@@ -93,7 +93,7 @@ if [ "$TABLE_COUNT" -eq 0 ]; then
       echo -e "${RED}❌ Migrations xatosi${NC}"
       echo ""
       echo "Bot containerini qayta ishga tushiring:"
-      echo "  docker-compose restart app"
+      echo "  docker compose restart app"
       exit 1
     fi
   else

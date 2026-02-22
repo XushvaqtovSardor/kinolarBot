@@ -35,7 +35,7 @@ if docker ps | grep -q kino_database; then
   test_result 0 "Database container ishlayapti"
 else
   test_result 1 "Database container ishlamayapti!"
-  echo "Fix: docker-compose up -d db"
+  echo "Fix: docker compose up -d db"
   exit 1
 fi
 

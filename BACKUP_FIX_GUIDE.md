@@ -167,5 +167,5 @@ ls -lht backups/ | head -5
 
 Backup tizimi endi to'liq ishlaydi.  Restore qilishdan keyin **ALBATTA** botni qayta ishga tushirishni unutmang:
 ```bash
-docker-compose restart app
+docker compose restart app
 ```
