@@ -11,8 +11,7 @@ import { Pool } from 'pg';
 @Injectable()
 export class PrismaService
   extends PrismaClient
-  implements OnModuleInit, OnModuleDestroy
-{
+  implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(PrismaService.name);
   private pool: Pool;
 
@@ -33,17 +32,20 @@ export class PrismaService
       log:
         process.env.NODE_ENV === 'development'
           ? [
-              { emit: 'event', level: 'query' },
-              { emit: 'event', level: 'error' },
-              { emit: 'event', level: 'warn' },
-            ]
+            { emit: 'event', level: 'query' },
+            { emit: 'event', level: 'error' },
+            { emit: 'event', level: 'warn' },
+          ]
           : [{ emit: 'event', level: 'error' }],
     });
 
     this.pool = pool;
 
     this.$on('error' as never, (e: any) => {
-      this.logger.error('Database error:', e);
+      this.logger.error('Database error:', e?.message || e);
+      if (e?.meta) {
+        this.logger.error('Error details:', e.meta);
+      }
     });
   }
 

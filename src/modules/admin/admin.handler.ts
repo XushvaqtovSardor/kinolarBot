@@ -3022,9 +3022,12 @@ Qaysi guruhga xabar yubormoqchisiz?
             AdminKeyboard.getAdminMainMenu(admin.role),
           );
         } catch (error) {
-          this.logger.error('Failed to create field', error);
+          this.logger.error('Failed to create field:', error.message || error);
+          const errorMsg = error.message?.includes('Unique constraint')
+            ? "❌ Bu field nomi yoki kanal ID allaqachon mavjud!"
+            : "❌ Field yaratishda xatolik yuz berdi. Iltimos, qaytadan urinib ko'ring.";
           await ctx.reply(
-            "❌ Field yaratishda xatolik yuz berdi. Iltimos, qaytadan urinib ko'ring.",
+            errorMsg,
             AdminKeyboard.getAdminMainMenu(admin.role),
           );
           this.sessionService.clearSession(ctx.from.id);
@@ -3494,6 +3497,15 @@ Qaysi guruhga xabar yubormoqchisiz?
 
     let telegramId: string | number = text.trim();
 
+    // Validatsiya: faqat username yoki raqam qabul qilamiz
+    if (!telegramId || telegramId.length > 100 || /[\s\n\r;']/.test(telegramId)) {
+      await ctx.reply(
+        "❌ Noto'g'ri format!\n\nIltimos, to'g'ri Telegram ID yoki @username kiriting.\n\nMasalan: 123456789 yoki @username",
+        AdminKeyboard.getCancelButton(),
+      );
+      return;
+    }
+
     // Agar @ bilan boshlansa, @ ni olib tashlaymiz
     if (telegramId.startsWith('@')) {
       telegramId = telegramId.substring(1);
@@ -3555,7 +3567,7 @@ Qaysi rol berasiz?
         reply_markup: keyboard,
       });
     } catch (error) {
-      this.logger.error(`Failed to get user info for telegramId: ${telegramId}`, error);
+      this.logger.error('Failed to get user info', error.message || error);
       await ctx.reply(
         "❌ Foydalanuvchi topilmadi yoki xatolik yuz berdi.\n\nIltimos, to'g'ri Telegram ID yoki @username kiriting.\n\nMasalan: 123456789 yoki @username",
         AdminKeyboard.getCancelButton(),
