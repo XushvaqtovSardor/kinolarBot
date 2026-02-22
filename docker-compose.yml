@@ -6,7 +6,7 @@ services:
     container_name: kino_database
     restart: always
     environment:
-      POSTGRES_USER: kinolar
+      POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 12345
       POSTGRES_DB: kino_db
     ports:
