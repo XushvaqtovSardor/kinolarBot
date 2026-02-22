@@ -12,7 +12,8 @@ services:
     ports:
       - "5445:5432"
     volumes:
-      - baza_data:/var/lib/postgresql/da  ta
+      - baza_data:/var/lib/postgresql/data
+      - ./backups:/backups
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
@@ -37,6 +38,38 @@ services:
         npx prisma migrate deploy &&
         pnpm run start:prod
       "
+
+  backup:
+    image: postgres:16
+    container_name: kino_backup
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 12345
+      POSTGRES_DB: kino_db
+      PGHOST: db
+      BACKUP_RETENTION_DAYS: 180
+    volumes:
+      - ./backups:/backups
+      - ./scripts:/scripts
+    depends_on:
+      db:
+        condition: service_healthy
+    entrypoint: /bin/bash
+    command: |
+      -c '
+        # Scriptlarga execute permission berish
+        chmod +x /scripts/*.sh
+        
+        # Birinchi backupni darhol olish (5 daqiqadan keyin)
+        sleep 300 && /scripts/backup.sh
+        
+        # Keyin kunlik backup (har 24 soatda)
+        while true; do
+          sleep 86400
+          /scripts/backup.sh
+        done
+      '
 
 volumes:
   baza_data:

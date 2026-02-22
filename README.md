@@ -125,6 +125,39 @@ docker-compose ps
 docker-compose logs -f
 ```
 
+## 🗄️ Database Backup & Restore
+
+Avtomatik backup tizimi o'rnatilgan - ma'lumotlar 6 oy saqlanadi va CI/CD paytida yo'qolmaydi.
+
+### Avtomatik Backup
+- ✅ Har 24 soatda avtomatik backup
+- ✅ Siqilgan format (gzip) - joy tejaydi
+- ✅ 6 oy (180 kun) saqlanadi
+- ✅ Git push paytida ma'lumotlar saqlanib qoladi
+
+### Manual Backup
+
+```bash
+# Backup yaratish
+./scripts/manual-backup.sh
+
+# Backuplarni ko'rish
+ls -lh backups/
+```
+
+### Restore (Tiklash)
+
+```bash
+# Mavjud backuplarni ko'rish
+ls -lh backups/
+
+# Restore qilish
+./scripts/manual-restore.sh kino_db_backup_20260222_143000.sql.gz
+```
+
+**📖 To'liq Backup Qo'llanmasi:** [scripts/README.md](scripts/README.md)  
+**🔄 Batafsil Restore Qo'llanmasi:** [scripts/RESTORE_GUIDE.md](scripts/RESTORE_GUIDE.md) ⭐
+
 ### Digital Ocean Droplet
 
 **Qisqa yo'l:**

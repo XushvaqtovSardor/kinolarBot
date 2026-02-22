@@ -1,0 +1,6 @@
+# Backups Directory
+
+Ushbu papkada PostgreSQL ma'lumotlar bazasining backuplari saqlanadi.
+Backuplar avtomatik ravishda yaratiladi va 6 oy (180 kun) saqlanadi.
+
+**Diqqat:** Ushbu papka git'ga yuklanmaydi (.gitignore da qo'shilgan)
