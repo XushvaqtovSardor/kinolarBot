@@ -63,20 +63,15 @@ else
 fi
 
 # Eski backuplarni o'chirish (RETENTION_DAYS kundan eski)
-echo "🗑️  Eski backuplarni tozalash..."
-# mtime: 180 kun = 180 * 24 * 60 = 259200 daqiqa
-DELETED_COUNT=0
+echo "Eski backuplarni tozalash..."
 if command -v find >/dev/null 2>&1; then
-  # Find bilan o'chirish (agar mavjud bo'lsa)
-  DELETED_LIST=$(find "${BACKUP_DIR}" -name "kino_db_backup_*.sql.gz" -type f -mtime +"${RETENTION_DAYS}" -print 2>/dev/null || true)
-  if [ -n "$DELETED_LIST" ]; then
-    echo "$DELETED_LIST" | while read -r file; do
-      rm -f "$file" 2>/dev/null && DELETED_COUNT=$((DELETED_COUNT + 1))
-    done
+  # Avval sanab olamiz
+  OLD_COUNT=$(find "${BACKUP_DIR}" -name "kino_db_backup_*.sql.gz" -type f -mtime +"${RETENTION_DAYS}" 2>/dev/null | wc -l)
+  if [ "$OLD_COUNT" -gt 0 ]; then
+    # Keyin o'chiramiz (-exec rm ishlatamiz, -delete o'rniga)
+    find "${BACKUP_DIR}" -name "kino_db_backup_*.sql.gz" -type f -mtime +"${RETENTION_DAYS}" -exec rm -f {} \; 2>/dev/null || true
+    echo "Ochirildi: ${OLD_COUNT} ta eski backup"
   fi
-fi
-if [ "$DELETED_COUNT" -gt 0 ]; then
-  echo "🗑️  Ochirildi: ${DELETED_COUNT} ta eski backup"
 fi
 
 # Mavjud backuplar sonini ko'rsatish

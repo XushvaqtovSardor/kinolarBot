@@ -52,18 +52,13 @@ docker exec kino_database /bin/bash -c '
   BACKUP_SIZE=$(du -h ${BACKUP_PATH} | cut -f1)
   echo "✅ Backup yaratildi: ${BACKUP_SIZE}"
   
-  # Eski backuplarni o'chirish (180 kundan eski)
-  DELETED=0
+  # Eski backuplarni tozalash (180 kundan eski)
   if command -v find >/dev/null 2>&1; then
-    DELETED_LIST=$(find ${BACKUP_DIR} -name "kino_db_backup_*.sql.gz" -type f -mtime +"${RETENTION_DAYS}" -print 2>/dev/null || true)
-    if [ -n "$DELETED_LIST" ]; then
-      echo "$DELETED_LIST" | while read -r file; do
-        rm -f "$file" 2>/dev/null && DELETED=$((DELETED + 1))
-      done
+    OLD_COUNT=$(find ${BACKUP_DIR} -name "kino_db_backup_*.sql.gz" -type f -mtime +"${RETENTION_DAYS}" 2>/dev/null | wc -l)
+    if [ "${OLD_COUNT}" -gt 0 ]; then
+      find ${BACKUP_DIR} -name "kino_db_backup_*.sql.gz" -type f -mtime +"${RETENTION_DAYS}" -exec rm -f {} \\; 2>/dev/null || true
+      echo "Ochirildi: ${OLD_COUNT} ta eski backup"
     fi
-  fi
-  if [ "$DELETED" -gt 0 ]; then
-    echo "🗑️  Ochirildi: ${DELETED} ta eski backup"
   fi
 "
 
