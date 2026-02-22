@@ -6,11 +6,11 @@ services:
     container_name: kino_bot
     restart: always
     environment:
-      POSTGRES_USER: postgres
+      POSTGRES_USER: kinolar
       POSTGRES_PASSWORD: 12345
       POSTGRES_DB: kino_db
     ports:
-      - "5432:5432"
+      - "5445:5432"
     volumes:
       - baza_data:/var/lib/postgresql/data
     healthcheck:
@@ -26,7 +26,7 @@ services:
     env_file:
       - .env
     expose:
-      - "3000"
+      - "3098"
     depends_on:
       db:
         condition: service_healthy
