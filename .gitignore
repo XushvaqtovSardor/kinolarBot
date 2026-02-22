@@ -71,9 +71,14 @@ backups/
 *.sql.gz
 *.dump
 
-# But keep backup scripts
-# !scripts/backup.sh
-# !scripts/restore.sh
-# !scripts/manual-backup.sh
-# !scripts/manual-restore.sh
-# !scripts/test-backup.sh
+# But keep backup scripts and guides
+!scripts/
+!scripts/backup.sh
+!scripts/restore.sh
+!scripts/manual-backup.sh
+!scripts/manual-restore.sh
+!scripts/test-backup.sh
+!scripts/fix-backups.sh
+!scripts/setup.sh
+!scripts/README.md
+!scripts/RESTORE_GUIDE.md
