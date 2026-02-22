@@ -34,13 +34,11 @@ services:
     volumes:
       - ./prisma:/app/prisma:ro
     command: >
-      sh -c "
-        echo 'Generating Prisma client...' &&
+     sh -c "
+        pnpm run build
         npx prisma generate &&
-        echo 'Pushing schema to database...' &&
-        npx prisma db push --accept-data-loss --skip-generate &&
-        echo 'Starting application...' &&
-        node dist/src/main.js
+        npx prisma migrate deploy &&
+        pnpm run start:prod
       "
 
   backup:
