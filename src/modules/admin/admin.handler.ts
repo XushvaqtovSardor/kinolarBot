@@ -3049,7 +3049,7 @@ Qaysi guruhga xabar yubormoqchisiz?
         const channelId = text.trim();
         if (!channelId.startsWith('-')) {
           await ctx.reply(
-            "❌ Kanal ID noto'g'ri formatda!\n\nKanal ID '-' belgisi bilan boshlanishi kerak.\nMasalan: -1001234567890",
+            "❌ Kanal ID noto'g'ri formatda!\n\nKanal  ID '-' belgisi bilan boshlanishi kerak.\nMasalan: -1001234567890",
             AdminKeyboard.getCancelButton(),
           );
           return;
