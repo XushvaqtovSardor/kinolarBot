@@ -29,7 +29,7 @@ docker exec kino_database /bin/bash -c '
   
   echo "📁 Fayl: ${BACKUP_FILE}"
   
-  # Backup yaratish
+  # Backup yaratish (verbose output stderr ga, uni ignore qilamiz)
   PGPASSWORD=12345 pg_dump \
     -h localhost \
     -U postgres \
@@ -39,7 +39,8 @@ docker exec kino_database /bin/bash -c '
     --no-acl \
     --clean \
     --if-exists \
-    2>&1 | gzip -9 > ${BACKUP_PATH}
+    --verbose \
+    2>/dev/null | gzip -9 > ${BACKUP_PATH}
   
   # Integrity test
   if ! gzip -t ${BACKUP_PATH} 2>/dev/null; then

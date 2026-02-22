@@ -22,8 +22,7 @@ echo "📁 Fayl: ${BACKUP_FILE}"
 # PostgreSQL dump (SQL formatda va siqilgan holda)
 # --clean: restore paytida eski obyektlarni avval o'chirish
 # --if-exists: agar obyekt mavjud bo'lsa, xatolik bermaslik  
-# --create: database yaratish komandalarini qo'shish
-# --inserts: COPY o'rniga INSERT ishlatish (restore xatolarini kamaytiradi)
+# MUHIM: verbose output stderr ga boradi, uni /dev/null ga yo'naltiramiz
 PGPASSWORD="${POSTGRES_PASSWORD}" pg_dump \
   -h "${PGHOST}" \
   -U "${POSTGRES_USER}" \
@@ -34,7 +33,7 @@ PGPASSWORD="${POSTGRES_PASSWORD}" pg_dump \
   --clean \
   --if-exists \
   --verbose \
-  2>&1 | gzip -9 > "${BACKUP_PATH}"
+  2>/dev/null | gzip -9 > "${BACKUP_PATH}"
 
 # Backup fayli hajmini tekshirish
 if [ ! -f "${BACKUP_PATH}" ]; then
