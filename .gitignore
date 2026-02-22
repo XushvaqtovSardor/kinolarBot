@@ -72,8 +72,8 @@ backups/
 *.dump
 
 # But keep backup scripts
-!scripts/backup.sh
-!scripts/restore.sh
-!scripts/manual-backup.sh
-!scripts/manual-restore.sh
-!scripts/test-backup.sh
+# !scripts/backup.sh
+# !scripts/restore.sh
+# !scripts/manual-backup.sh
+# !scripts/manual-restore.sh
+# !scripts/test-backup.sh
