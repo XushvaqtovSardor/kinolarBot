@@ -64,8 +64,16 @@ logs
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
 /generated/prisma
-# Database backups
-# backups/
-# *.sql
-# *.sql.gz
-# *.dump
+
+# Database backups (uncommented - backups should not be in git)
+backups/
+*.sql
+*.sql.gz
+*.dump
+
+# But keep backup scripts
+!scripts/backup.sh
+!scripts/restore.sh
+!scripts/manual-backup.sh
+!scripts/manual-restore.sh
+!scripts/test-backup.sh

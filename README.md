@@ -127,36 +127,41 @@ docker-compose logs -f
 
 ## 🗄️ Database Backup & Restore
 
-Avtomatik backup tizimi o'rnatilgan - ma'lumotlar 6 oy saqlanadi va CI/CD paytida yo'qolmaydi.
+Avtomatik backup tizimi o'rnatilgan - ma'lumotlar 180 kun (6 oy) saqlanadi.
+
+### ⚡ Tezkor Qo'llanma
+
+**Backup Yaratish:**
+```bash
+./scripts/manual-backup.sh
+```
+
+**Restore Qilish:**
+```bash
+# 1. Backuplarni ko'rish
+ls -lht backups/
+
+# 2. Restore qilish  
+./scripts/manual-restore.sh kino_db_backup_20260223_143000.sql.gz
+
+# 3. ⚠️ MUHIM: Botni qayta ishga tushirish
+docker-compose restart app
+```
+
+**⚠️ ESLATMA:** Restore qilgandan keyin **ALBATTA** botni qayta ishga tushiring!
+
+### 📖 To'liq Qo'llanmalar
+
+- 🚀 **[Tezkor Qo'llanma](BACKUP_QUICKSTART.md)** - Eng muhim ma'lumotlar
+- 📖 **[To'liq Qo'llanma](BACKUP_QOLLANMA.md)** - Batafsil amaliyot
+- 🔄 **[Restore Guide](scripts/RESTORE_GUIDE.md)** - Tiklash bo'yicha
 
 ### Avtomatik Backup
-- ✅ Har 24 soatda avtomatik backup
-- ✅ Siqilgan format (gzip) - joy tejaydi
-- ✅ 6 oy (180 kun) saqlanadi
-- ✅ Git push paytida ma'lumotlar saqlanib qoladi
-
-### Manual Backup
-
-```bash
-# Backup yaratish
-./scripts/manual-backup.sh
-
-# Backuplarni ko'rish
-ls -lh backups/
-```
-
-### Restore (Tiklash)
-
-```bash
-# Mavjud backuplarni ko'rish
-ls -lh backups/
-
-# Restore qilish
-./scripts/manual-restore.sh kino_db_backup_20260222_143000.sql.gz
-```
-
-**📖 To'liq Backup Qo'llanmasi:** [scripts/README.md](scripts/README.md)  
-**🔄 Batafsil Restore Qo'llanmasi:** [scripts/RESTORE_GUIDE.md](scripts/RESTORE_GUIDE.md) ⭐
+- ✅ Har 6 soatda avtomatik backup (Docker container orbital)
+- ✅ Siqilgan format (gzip) - joy tejaydi  
+- ✅ 180 kun (6 oy) saqlanadi
+- ✅ Integrity test - buzilgan backuplar o'chiriladi
+- ✅ Git repositoriyaga yuklanmaydi (.gitignore da)
 
 ### Digital Ocean Droplet
 

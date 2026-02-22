@@ -1,197 +1,101 @@
-# 🗄️ PostgreSQL Backup & Restore
+# 🛠️ Scripts Papkasi
 
-Ushbu tizim PostgreSQL ma'lumotlar bazasini avtomatik zaxiralab, 40 kun davomida saqlab qoladi.
+Bu papkada database backup va restore scriptlari joylashgan.
 
-## 📋 Xususiyatlar
+## 📋 Fayllar
 
-- ✅ Avtomatik kunlik backup (har 24 soatda)
-- ✅ Siqilgan format (gzip) - joy tejaydi
-- ✅ 6 oy davomida saqlanadi
-- ✅ Manual backup/restore imkoniyati
-- ✅ CI/CD bilan ishlaydi - ma'lumotlar saqlanib qoladi
+### Backup Scriptlari
 
-## 🚀 Ishga tushirish
+- **`backup.sh`** - Docker container ichida ishlaydigan avtomatik backup scripti
+- **`manual-backup.sh`** - Docker tashqaridan ishlatish uchun manual backup scripti
 
-Docker Compose orqali avtomatik ishga tushadi:
+### Restore Scriptlari
 
-```bash
-docker-compose up -d
-```
+- **`restore.sh`** - Docker container ichida ishlaydigan restore scripti
+- **`manual-restore.sh`** - Docker tashqaridan ishlatish uchun manual restore scripti
 
-Backup service har 24 soatda avtomatik ishga tushadi.
+### Test va Boshqa
 
-## 📁 Backup Joylashuvi
+- **`test-backup.sh`** - Backup sistemasini test qilish scripti
+- **`setup.sh`** - Dastlabki sozlash scripti
 
-Barcha backuplar `backups/` papkasida saqlanadi:
-- Format: `kino_db_backup_YYYYMMDD_HHMMSS.sql.gz`
-- Misol: `kino_db_backup_20260222_143000.sql.gz`
+## 🚀 Tezkor Foydalanish
 
-## 🔧 Qo'lda Backup Yaratish
+### Backup Yaratish
 
 ```bash
-# Linux/Mac
-chmod +x scripts/manual-backup.sh
+# Development (local)
 ./scripts/manual-backup.sh
-
-# Windows (Git Bash)
-bash scripts/manual-backup.sh
-
-# Yoki Docker orqali
-docker exec kino_backup /scripts/backup.sh
 ```
 
-## ♻️ Backupni Tiklash
-
-**🔄 BATAFSIL QO'LLANMA:** [RESTORE_GUIDE.md](RESTORE_GUIDE.md) ⭐
-
-Restore qo'llanmasida:
-- ✅ 4 xil tiklash usuli (avtomatik va manual)
-- ✅ Barcha xatolar va ularning yechimlari
-- ✅ Amaliy misollar va stsenariylar
-- ✅ Production uchun xavfsizlik checklisti
-- ✅ FAQ va troubleshooting
-
-### Tezkor Tiklash (Qisqa versiya)
+### Restore Qilish
 
 ```bash
-# 1. Mavjud backuplarni ko'rish
-ls -lh backups/
+# 1. Backuplarni ko'rish
+ls -lht backups/
 
 # 2. Restore qilish
-chmod +x scripts/manual-restore.sh
-./scripts/manual-restore.sh kino_db_backup_20260222_143000.sql.gz
+./scripts/manual-restore.sh kino_db_backup_20260223_143000.sql.gz
 
-# Yoki Docker orqali
-docker exec -i kino_backup /scripts/restore.sh kino_db_backup_20260222_143000.sql.gz
+# 3. MUHIM: Botni qayta ishga tushirish
+docker-compose restart app
 ```
 
-### Manual usul (Docker-siz)
+### Test Qilish
 
 ```bash
-# 1. Container nomini olish
-docker ps
-
-# 2. Restore qilish
-gunzip -c backups/kino_db_backup_20260222_143000.sql.gz | \
-  docker exec -i kino_database psql -U postgres -d kino_db
+# Backup sistemasini test qilish
+chmod +x scripts/test-backup.sh
+./scripts/test-backup.sh
 ```
 
-## 📊 Backup Statistikasi
+## 📖 To'liq Qo'llanma
 
-Mavjud backuplarni ko'rish:
+To'liq va batafsil qo'llanma uchun o'qing:
 
 ```bash
-# Barcha backuplar
-ls -lh backups/
-
-# Eng so'nggi 10 ta
-ls -lht backups/ | head -10
-
-# Jami hajm
-du -sh backups/
+cat ../BACKUP_QOLLANMA.md
 ```
 
-## ⚙️ Konfiguratsiya
-
-`docker-compose.yml` faylida:
-
-```yaml
-environment:
-  BACKUP_RETENTION_DAYS: 180  # Saqlanish muddati (kun) - 6 oy
-```
-
-## 🔒 Xavfsizlik
-
-1. `.gitignore` ichida `backups/` qo'shilgan - backuplar git'ga yuklanmaydi
-2. Faqat local serverda saqlanadi
-3. Production uchun S3/Cloud storagega yuklash tavsiya etiladi
-
-## 🔄 CI/CD bilan Ishlash
-
-Docker volume ishlatilganligi suchun:
-- ✅ Git push qilsangiz ham ma'lumotlar saqlanib qoladi
-- ✅ Container qayta yaratilsa ham volume o'zgarmas
-- ✅ Backup tizimi avtomatik ishlaydi
-- ✅ Backuplar 6 oy saqlanadi
-
-### Volume o'chirish (ehtiyot bo'ling!)
+Yoki:
 
 ```bash
-# Faqat container o'chirish (ma'lumotlar saqlanadi)
-docker-compose down
-
-# Container + volume o'chirish (ma'lumotlar yo'qoladi!)
-docker-compose down -v
-
-# Volume tiklash
-docker-compose up -d
-docker exec -i kino_backup /scripts/restore.sh <backup_file>
-```
-
-## 📝 Misollar
-
-### 1. Kunlik backup tekshirish
-
-```bash
-# Bugungi backupni ko'rish
-ls -lh backups/ | grep $(date +%Y%m%d)
-```
-
-### 2. Eng so'nggi backupni tiklash
-
-```bash
-# Eng so'nggi faylni topish va tiklash
-LATEST=$(ls -t backups/kino_db_backup_*.sql.gz | head -1)
-./scripts/manual-restore.sh $(basename $LATEST)
-```
-
-### 3. Ma'lum sana backupini tiklash
-
-```bash
-# Masalan, 2026-02-20 sanasidagi backup
-ls backups/ | grep 20260220
-./scripts/manual-restore.sh kino_db_backup_20260220_143000.sql.gz
+cat RESTORE_GUIDE.md
 ```
 
 ## ⚠️ Muhim Eslatmalar
 
-1. **Restore paytida**: Bazadagi barcha ma'lumotlar o'chiriladi va backup'dan tiklanadi
-2. **Disk hajmi**: 6 oy uchun kifoya qiluvchi joy bo'lishi kerak (taxminan 180 ta backup)
-3. **Performance**: Backup paytida baza sekinlashishi mumkin (kechasi amalga oshiriladi)
-4. **Testing**: Production'da ishlatishdan oldin test muhitida sinab ko'ring
+1. **Restore qilgandan keyin botni ALBATTA qayta ishga tushiring:**
+   ```bash
+   docker-compose restart app
+   ```
 
-## 🆘 Muammolar va Yechimlar
+2. **Restore qilishdan oldin yangi backup yarating:**
+   ```bash
+   ./scripts/manual-backup.sh
+   ```
 
-### Backup ishlamayapti
+3. **Backup fayllarni tekshiring:**
+   ```bash
+   gzip -t backups/kino_db_backup_*.sql.gz
+   ```
 
-```bash
-# Container loglarini ko'rish
-docker logs kino_backup
+## 🆘 Yordam
 
-# Backup scriptini qo'lda ishga tushirish
-docker exec kino_backup /scripts/backup.sh
-```
+Muammoga duch kelsangiz:
 
-### Restore xatolik beradi
+1. Test scriptini ishga tushiring:
+   ```bash
+   ./scripts/test-backup.sh
+   ```
 
-```bash
-# Database connection tekshirish
-docker exec kino_database pg_isready -U postgres
+2. Loglarni tekshiring:
+   ```bash
+   docker logs kino_database --tail 50
+   docker logs kino_bot --tail 50
+   ```
 
-# Bazani qo'lda yaratish
-docker exec kino_database psql -U postgres -c "CREATE DATABASE kino_db;"
-```
-
-### Disk to'lib ketdi
-
-```bash
-# Eski backuplarni qo'lda o'chirish (6 oydan eski)
-find backups/ -name "*.sql.gz" -mtime +180 -delete
-
-# Yoki retention vaqtini qisqartirish
-# docker-compose.yml da BACKUP_RETENTION_DAYS ni kamaytiring
-```
-
-## 📞 Yordam
-
-Qo'shimcha savollar yoki muammolar bo'lsa, GitHub Issues'da savol yuboring.
+3. To'liq qo'llanmani o'qing:
+   ```bash
+   cat ../BACKUP_QOLLANMA.md
+   ```

@@ -56,15 +56,17 @@ services:
       db:
         condition: service_healthy
     entrypoint: /bin/bash
-command: >
-  -c "
-    chmod +x /scripts/*.sh &&
-    sleep 300 && /scripts/backup.sh &&
-    while true; do
-      sleep 86400
-      /scripts/backup.sh
-    done
-  "
+    command: >
+      -c "
+        chmod +x /scripts/*.sh &&
+        echo '⏳ Backup container boshlandi. Birinchi backup 5 daqiqada...' &&
+        sleep 300 && /scripts/backup.sh &&
+        echo '✅ Birinchi backup tugallandi. Keyingi backup 24 soatda...' &&
+        while true; do
+          sleep 21600
+          /scripts/backup.sh
+        done
+      "
 
 volumes:
   baza_data:
