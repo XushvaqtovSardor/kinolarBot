@@ -3668,19 +3668,34 @@ Qaysi guruhga xabar yubormoqchisiz?
       telegramId = parseInt(String(telegramId), 10);
     }
 
+    // Foydalanuvchi ma'lumotini olishga harakat qilamiz
+    let username: string | undefined;
+    let userFound = false;
+
     try {
       const user = await ctx.api.getChat(telegramId);
-      const username = 'username' in user ? user.username : undefined;
+      username = 'username' in user ? user.username : undefined;
+      userFound = true;
+    } catch (error) {
+      // Agar foydalanuvchi topilmasa, ID/username bilan davom etamiz
+      this.logger.warn(`Cannot get user info for ${telegramId}, proceeding anyway: ${error.message}`);
+      username = typeof telegramId === 'string' ? telegramId : undefined;
+    }
 
-      this.sessionService.updateSessionData(ctx.from.id, {
-        telegramId,
-        username: username || String(telegramId),
-      });
+    // Session ma'lumotlarini saqlaymiz
+    this.sessionService.updateSessionData(ctx.from.id, {
+      telegramId,
+      username: username || String(telegramId),
+    });
 
-      const message = `
+    const statusText = userFound
+      ? '✅ Foydalanuvchi topildi:'
+      : '⚠️ Foydalanuvchi ma\'lumoti olinmadi (bot bilan muloqot qilmagan bo\'lishi mumkin):';
+
+    const message = `
 👤 **Admin qo'shish**
 
-✅ Foydalanuvchi topildi:
+${statusText}
 🆔 ${username ? '@' + username : telegramId}
 🆔 ID: ${telegramId}
 
@@ -3705,26 +3720,19 @@ Qaysi guruhga xabar yubormoqchisiz?
 └ To'liq nazorat
 
 Qaysi rol berasiz?
-      `.trim();
+    `.trim();
 
-      const keyboard = new InlineKeyboard()
-        .text('👥 Admin', `select_admin_role_ADMIN_${telegramId}`)
-        .row()
-        .text('👨‍💼 Manager', `select_admin_role_MANAGER_${telegramId}`)
-        .row()
-        .text('👑 SuperAdmin', `select_admin_role_SUPERADMIN_${telegramId}`);
+    const keyboard = new InlineKeyboard()
+      .text('👥 Admin', `select_admin_role_ADMIN_${telegramId}`)
+      .row()
+      .text('👨‍💼 Manager', `select_admin_role_MANAGER_${telegramId}`)
+      .row()
+      .text('👑 SuperAdmin', `select_admin_role_SUPERADMIN_${telegramId}`);
 
-      await ctx.reply(message, {
-        parse_mode: 'Markdown',
-        reply_markup: keyboard,
-      });
-    } catch (error) {
-      this.logger.error('Failed to get user info', error.message || error);
-      await ctx.reply(
-        "❌ Foydalanuvchi topilmadi yoki xatolik yuz berdi.\n\nIltimos, to'g'ri Telegram ID yoki @username kiriting.\n\nMasalan: 123456789 yoki @username",
-        AdminKeyboard.getCancelButton(),
-      );
-    }
+    await ctx.reply(message, {
+      parse_mode: 'Markdown',
+      reply_markup: keyboard,
+    });
   }
 
   private async handlePriceEditingSteps(
