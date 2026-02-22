@@ -60,8 +60,6 @@ docker-compose*.yml
 .gitlab-ci.yml
 
 # Scripts (not needed in container)
-scripts
-*.sh
 !docker-entrypoint.sh
 
 # Misc
