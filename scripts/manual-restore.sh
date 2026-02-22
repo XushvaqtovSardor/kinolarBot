@@ -24,7 +24,7 @@ BACKUP_FILE="$1"
 if [ ! -f "backups/${BACKUP_FILE}" ]; then
   echo "❌ Xatolik: Backup fayl topilmadi: backups/${BACKUP_FILE}"
   echo ""
-  echo "🗂️  Mavjud backuplar:"
+  echo "🗂️  Mavjud  backuplar:"
   ls -lht backups/kino_db_backup_*.sql.gz 2>/dev/null | head -10 || echo "Backuplar topilmadi"
   exit 1
 fi
