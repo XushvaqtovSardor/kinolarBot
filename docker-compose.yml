@@ -61,19 +61,12 @@ services:
         condition: service_healthy
     entrypoint: /bin/bash
     command: |
-      -c '
-        # Scriptlarga execute permission berish
-        chmod +x /scripts/*.sh
-        
-        # Birinchi backupni darhol olish (5 daqiqadan keyin)
-        sleep 300 && /scripts/backup.sh
-        
-        # Keyin kunlik backup (har 24 soatda)
-        while true; do
-          sleep 86400
-          /scripts/backup.sh
-        done
-      '
+     sh -c "
+        pnpm run build
+        npx prisma generate &&
+        npx prisma migrate deploy &&
+        pnpm run start:prod
+      "
 
 volumes:
   baza_data:
