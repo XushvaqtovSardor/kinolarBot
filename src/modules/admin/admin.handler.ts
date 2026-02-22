@@ -3060,7 +3060,7 @@ Qaysi guruhga xabar yubormoqchisiz?
           const existingChannel = await this.channelService.findDatabaseChannelByChannelId(channelId);
           if (existingChannel) {
             await ctx.reply(
-              `⚠️ Bu kanal allaqachon database kanallar ro'yxatida mavjud!\n\n` +
+              `⚠️ Bu kanal allaqachon database kanallar    ro'yxatida mavjud!\n\n` +
               `📢 ${existingChannel.channelName}\n` +
               `🆔 ${channelId}\n` +
               `${existingChannel.channelLink ? `🔗 ${existingChannel.channelLink}` : ''}`,
