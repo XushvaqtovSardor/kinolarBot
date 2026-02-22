@@ -31,7 +31,17 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    # Entrypoint script avtomatik migration va app startni boshqaradi
+    volumes:
+      - ./prisma:/app/prisma:ro
+    command: >
+      sh -c "
+        echo 'Generating Prisma client...' &&
+        npx prisma generate &&
+        echo 'Pushing schema to database...' &&
+        npx prisma db push --accept-data-loss --skip-generate &&
+        echo 'Starting application...' &&
+        node dist/src/main.js
+      "
 
   backup:
     image: postgres:16
