@@ -16,7 +16,7 @@ import { PremiumService } from '../payment/services/premium.service';
 import { SettingsService } from '../settings/services/settings.service';
 import { GrammyBotService } from '../../common/grammy/grammy-bot.module';
 import { PrismaService } from '../../prisma/prisma.service';
-import { ChannelType } from '@prisma/client';
+import { ChannelType, AdminRole } from '@prisma/client';
 import {
   AdminState,
   MovieCreateStep,
@@ -82,7 +82,10 @@ export class AdminHandler implements OnModuleInit {
 
     bot.hears('📊 Statistika', async (ctx) => {
       try {
-        await this.withAdminCheck(this.showStatistics.bind(this))(ctx);
+        await this.withRoleCheck(
+          [AdminRole.MANAGER, AdminRole.SUPERADMIN],
+          async (ctx, admin) => await this.showStatistics(ctx),
+        )(ctx);
       } catch (error) {
         this.logger.error(`[AdminHandler.statisticsHandler] Error - Admin: ${ctx.from?.id}, Error: ${error.message}`);
         await ctx.reply('❌ Xatolik yuz berdi.').catch(() => { });
@@ -175,7 +178,10 @@ export class AdminHandler implements OnModuleInit {
 
     bot.hears('📢 Majburiy kanallar', async (ctx) => {
       try {
-        await this.withAdminCheck(this.showMandatoryChannels.bind(this))(ctx);
+        await this.withRoleCheck(
+          [AdminRole.MANAGER, AdminRole.SUPERADMIN],
+          async (ctx, admin) => await this.showMandatoryChannels(ctx),
+        )(ctx);
       } catch (error) {
         this.logger.error(
           `❌ Error in mandatory channels handler: ${error.message}`,
@@ -185,9 +191,10 @@ export class AdminHandler implements OnModuleInit {
 
     bot.hears("➕ Majburiy kanal qo'shish", async (ctx) => {
       try {
-        await this.withAdminCheck(this.startAddMandatoryChannel.bind(this))(
-          ctx,
-        );
+        await this.withRoleCheck(
+          [AdminRole.MANAGER, AdminRole.SUPERADMIN],
+          async (ctx, admin) => await this.startAddMandatoryChannel(ctx),
+        )(ctx);
       } catch (error) {
         this.logger.error(
           `❌ Error in add mandatory channel handler: ${error.message}`,
@@ -197,7 +204,10 @@ export class AdminHandler implements OnModuleInit {
 
     bot.hears("📊 Tarixni ko'rish", async (ctx) => {
       try {
-        await this.withAdminCheck(this.showChannelHistory.bind(this))(ctx);
+        await this.withRoleCheck(
+          [AdminRole.MANAGER, AdminRole.SUPERADMIN],
+          async (ctx, admin) => await this.showChannelHistory(ctx),
+        )(ctx);
       } catch (error) {
         this.logger.error(
           `❌ Error in channel history handler: ${error.message}`,
@@ -207,7 +217,10 @@ export class AdminHandler implements OnModuleInit {
 
     bot.hears("📋 Hammasini ko'rish", async (ctx) => {
       try {
-        await this.withAdminCheck(this.showAllChannelsHistory.bind(this))(ctx);
+        await this.withRoleCheck(
+          [AdminRole.MANAGER, AdminRole.SUPERADMIN],
+          async (ctx, admin) => await this.showAllChannelsHistory(ctx),
+        )(ctx);
       } catch (error) {
         this.logger.error(
           `❌ Error in all channels history handler: ${error.message}`,
@@ -266,7 +279,10 @@ export class AdminHandler implements OnModuleInit {
 
     bot.hears("💳 To'lovlar", async (ctx) => {
       try {
-        await this.withAdminCheck(this.showPaymentsMenu.bind(this))(ctx);
+        await this.withRoleCheck(
+          [AdminRole.SUPERADMIN],
+          async (ctx, admin) => await this.showPaymentsMenu(ctx),
+        )(ctx);
       } catch (error) {
         this.logger.error(
           `❌ Error in payments menu handler: ${error.message}`,
@@ -276,7 +292,10 @@ export class AdminHandler implements OnModuleInit {
 
     bot.hears("📥 Yangi to'lovlar", async (ctx) => {
       try {
-        await this.withAdminCheck(this.showPendingPayments.bind(this))(ctx);
+        await this.withRoleCheck(
+          [AdminRole.SUPERADMIN],
+          async (ctx, admin) => await this.showPendingPayments(ctx),
+        )(ctx);
       } catch (error) {
         this.logger.error(
           `❌ Error in pending payments handler: ${error.message}`,
@@ -286,7 +305,10 @@ export class AdminHandler implements OnModuleInit {
 
     bot.hears('✅ Tasdiqlangan', async (ctx) => {
       try {
-        await this.withAdminCheck(this.showApprovedPayments.bind(this))(ctx);
+        await this.withRoleCheck(
+          [AdminRole.SUPERADMIN],
+          async (ctx, admin) => await this.showApprovedPayments(ctx),
+        )(ctx);
       } catch (error) {
         this.logger.error(
           `❌ Error in approved payments handler: ${error.message}`,
@@ -296,23 +318,38 @@ export class AdminHandler implements OnModuleInit {
 
     bot.hears(
       '❌ Rad etilgan',
-      this.withAdminCheck(this.showRejectedPayments.bind(this)),
+      this.withRoleCheck(
+        [AdminRole.SUPERADMIN],
+        async (ctx, admin) => await this.showRejectedPayments(ctx),
+      ),
     );
     bot.hears(
       "📊 To'lov statistikasi",
-      this.withAdminCheck(this.showPaymentStatistics.bind(this)),
+      this.withRoleCheck(
+        [AdminRole.SUPERADMIN],
+        async (ctx, admin) => await this.showPaymentStatistics(ctx),
+      ),
     );
     bot.hears(
       '🚫 Premium banned users',
-      this.withAdminCheck(this.showPremiumBannedUsersMenu.bind(this)),
+      this.withRoleCheck(
+        [AdminRole.SUPERADMIN],
+        async (ctx, admin) => await this.showPremiumBannedUsersMenu(ctx),
+      ),
     );
     bot.hears(
       '👥 Adminlar',
-      this.withAdminCheck(this.showAdminsList.bind(this)),
+      this.withRoleCheck(
+        [AdminRole.SUPERADMIN],
+        async (ctx, admin) => await this.showAdminsList(ctx),
+      ),
     );
     bot.hears(
       '⚙️ Sozlamalar',
-      this.withAdminCheck(this.showSettings.bind(this)),
+      this.withRoleCheck(
+        [AdminRole.SUPERADMIN],
+        async (ctx, admin) => await this.showSettings(ctx),
+      ),
     );
     bot.hears(
       '📣 Reklama yuborish',
@@ -320,35 +357,59 @@ export class AdminHandler implements OnModuleInit {
     );
     bot.hears(
       '🌐 Web Panel',
-      this.withAdminCheck(this.showWebPanel.bind(this)),
+      this.withRoleCheck(
+        [AdminRole.MANAGER, AdminRole.SUPERADMIN],
+        async (ctx, admin) => await this.showWebPanel(ctx),
+      ),
     );
     bot.hears(
       '👥 Barcha foydalanuvchilar',
-      this.withAdminCheck(this.showAllUsers.bind(this)),
+      this.withRoleCheck(
+        [AdminRole.SUPERADMIN],
+        async (ctx, admin) => await this.showAllUsers(ctx),
+      ),
     );
     bot.hears(
       '🚫 Foydalanuvchini bloklash',
-      this.withAdminCheck(this.startBlockUser.bind(this)),
+      this.withRoleCheck(
+        [AdminRole.SUPERADMIN],
+        async (ctx, admin) => await this.startBlockUser(ctx),
+      ),
     );
     bot.hears(
       '✅ Blokdan ochish',
-      this.withAdminCheck(this.startUnblockUser.bind(this)),
+      this.withRoleCheck(
+        [AdminRole.SUPERADMIN],
+        async (ctx, admin) => await this.startUnblockUser(ctx),
+      ),
     );
     bot.hears(
       "👥 Hamma userlarni ko'rish",
-      this.withAdminCheck(this.showAllPremiumBannedUsers.bind(this)),
+      this.withRoleCheck(
+        [AdminRole.SUPERADMIN],
+        async (ctx, admin) => await this.showAllPremiumBannedUsers(ctx),
+      ),
     );
     bot.hears(
       '🔍 Qidirish',
-      this.withAdminCheck(this.startSearchPremiumBannedUser.bind(this)),
+      this.withRoleCheck(
+        [AdminRole.SUPERADMIN],
+        async (ctx, admin) => await this.startSearchPremiumBannedUser(ctx),
+      ),
     );
     bot.hears(
       "💳 To'lovlar menyusiga qaytish",
-      this.withAdminCheck(this.showPaymentsMenu.bind(this)),
+      this.withRoleCheck(
+        [AdminRole.SUPERADMIN],
+        async (ctx, admin) => await this.showPaymentsMenu(ctx),
+      ),
     );
     bot.hears(
       "🗑️ Kontent o'chirish",
-      this.withAdminCheck(this.startDeleteContent.bind(this)),
+      this.withRoleCheck(
+        [AdminRole.MANAGER, AdminRole.SUPERADMIN],
+        async (ctx, admin) => await this.startDeleteContent(ctx),
+      ),
     );
     bot.hears(
       '🗑️ Tarixni tozalash',
@@ -679,6 +740,31 @@ export class AdminHandler implements OnModuleInit {
       if (admin) {
         await handler(ctx);
       }
+    };
+  }
+
+  // Role-based permission checker
+  private withRoleCheck(
+    requiredRoles: AdminRole[],
+    handler: (ctx: BotContext, admin: any) => Promise<void>,
+  ) {
+    return async (ctx: BotContext) => {
+      const admin = await this.getAdmin(ctx);
+      if (!admin) {
+        await ctx.reply('❌ Siz admin emassiz!');
+        return;
+      }
+
+      if (!requiredRoles.includes(admin.role)) {
+        await ctx.reply(
+          '❌ Bu funksiya uchun sizda ruxsat yo\'q!\n\n' +
+          '💡 Sizning rolingiz: ' + admin.role + '\n' +
+          '📋 Bu funksiya faqat ' + requiredRoles.join(' yoki ') + ' uchun.',
+        );
+        return;
+      }
+
+      await handler(ctx, admin);
     };
   }
 
@@ -1404,6 +1490,8 @@ Biz yuklayotgan kinolar turli saytlardan olinadi.
       return;
     }
 
+    const admin = await this.getAdmin(ctx);
+
     const message = `
 📁 **Field Ma'lumotlari**
 🏷 Nomi: ${field.name}
@@ -1414,10 +1502,14 @@ Biz yuklayotgan kinolar turli saytlardan olinadi.
 ✅ Faol: ${field.isActive ? 'Ha' : "Yo'q"}
     `.trim();
 
-    const keyboard = new InlineKeyboard()
-      .text("🗑 O'chirish", `delete_field_${field.id}`)
-      .row()
-      .text('🔙 Orqaga', 'back_to_fields');
+    const keyboard = new InlineKeyboard();
+
+    // Faqat SUPERADMIN o'chirish tugmasini ko'ra oladi
+    if (admin?.role === 'SUPERADMIN') {
+      keyboard.text("🗑 O'chirish", `delete_field_${field.id}`).row();
+    }
+
+    keyboard.text('🔙 Orqaga', 'back_to_fields');
 
     await ctx.editMessageText(message, {
       parse_mode: 'Markdown',
@@ -1433,6 +1525,15 @@ Biz yuklayotgan kinolar turli saytlardan olinadi.
   private async deleteField(ctx: BotContext) {
     const admin = await this.getAdmin(ctx);
     if (!admin) return;
+
+    // Faqat SUPERADMIN o'chira oladi
+    if (admin.role !== 'SUPERADMIN') {
+      await ctx.answerCallbackQuery({
+        text: "❌ Faqat SUPERADMIN fieldlarni o'chira oladi!",
+        show_alert: true,
+      });
+      return;
+    }
 
     const fieldId = parseInt(ctx.match![1] as string);
     await this.fieldService.delete(fieldId);
@@ -1476,11 +1577,15 @@ Biz yuklayotgan kinolar turli saytlardan olinadi.
     });
 
     const inlineKeyboard = new InlineKeyboard();
-    channels.forEach((ch) => {
-      inlineKeyboard
-        .text(`🗑 ${ch.channelName}`, `delete_mandatory_${ch.id}`)
-        .row();
-    });
+
+    // Faqat SUPERADMIN o'chirish tugmalarini ko'ra oladi
+    if (admin.role === 'SUPERADMIN') {
+      channels.forEach((ch) => {
+        inlineKeyboard
+          .text(`🗑 ${ch.channelName}`, `delete_mandatory_${ch.id}`)
+          .row();
+      });
+    }
 
     // So'rovlarni ko'rish tugmasini qo'shish
     inlineKeyboard.text('📋 So\'rovlarni ko\'rish', 'view_join_requests').row();
@@ -1528,6 +1633,15 @@ Biz yuklayotgan kinolar turli saytlardan olinadi.
   private async deleteMandatoryChannel(ctx: BotContext) {
     const admin = await this.getAdmin(ctx);
     if (!admin) return;
+
+    // Faqat SUPERADMIN o'chira oladi
+    if (admin.role !== 'SUPERADMIN') {
+      await ctx.answerCallbackQuery({
+        text: "❌ Faqat SUPERADMIN kanallarni o'chira oladi!",
+        show_alert: true,
+      });
+      return;
+    }
 
     const channelId = parseInt(ctx.match![1] as string);
     await this.channelService.delete(channelId);
@@ -1789,8 +1903,10 @@ Biz yuklayotgan kinolar turli saytlardan olinadi.
         inlineKeyboard.row();
       }
 
-      // O'chirish tugmasi
-      inlineKeyboard.text("🗑 Kanal o'chirish", 'show_delete_db_channels').row();
+      // O'chirish tugmasi faqat SUPERADMIN uchun
+      if (admin.role === 'SUPERADMIN') {
+        inlineKeyboard.text("🗑 Kanal o'chirish", 'show_delete_db_channels').row();
+      }
 
       await ctx.reply(message, {
         reply_markup: inlineKeyboard,
@@ -1981,6 +2097,15 @@ Biz yuklayotgan kinolar turli saytlardan olinadi.
   private async deleteDatabaseChannel(ctx: BotContext) {
     const admin = await this.getAdmin(ctx);
     if (!admin) return;
+
+    // Faqat SUPERADMIN o'chira oladi
+    if (admin.role !== 'SUPERADMIN') {
+      await ctx.answerCallbackQuery({
+        text: "❌ Faqat SUPERADMIN database kanallarni o'chira oladi!",
+        show_alert: true,
+      });
+      return;
+    }
 
     try {
       await ctx.answerCallbackQuery({ text: '⏳ O\'chirilmoqda...' });
@@ -2617,16 +2742,37 @@ Biz yuklayotgan kinolar turli saytlardan olinadi.
         return;
       }
 
-      const canDelete =
-        adminToDelete.createdBy === ctx.from!.id.toString() ||
-        adminToDelete.createdAt > currentAdmin.createdAt;
+      // SUPERADMIN faqat o'zidan keyin qo'shilgan SUPERADMINlarni o'chira oladi
+      if (adminToDelete.role === 'SUPERADMIN') {
+        // O'zingiz yaratgan bo'lsa - o'chirishingiz mumkin
+        if (adminToDelete.createdBy === ctx.from!.id.toString()) {
+          // OK
+        }
+        // Yoki o'zingizdan keyin qo'shilgan bo'lsa - o'chirishingiz mumkin
+        else if (adminToDelete.createdAt > currentAdmin.createdAt) {
+          // OK
+        }
+        // Aks holda - o'chira olmaysiz
+        else {
+          await ctx.answerCallbackQuery({
+            text: "❌ Siz faqat o'zingiz yaratgan yoki o'zingizdan keyin qo'shilgan SUPERADMINlarni o'chira olasiz!",
+            show_alert: true,
+          });
+          return;
+        }
+      } else {
+        // ADMIN va MANAGER uchun oddiy tekshirish
+        const canDelete =
+          adminToDelete.createdBy === ctx.from!.id.toString() ||
+          adminToDelete.createdAt > currentAdmin.createdAt;
 
-      if (!canDelete) {
-        await ctx.answerCallbackQuery({
-          text: "❌ Siz faqat o'zingiz yaratgan yoki o'zingizdan keyin qo'shilgan adminlarni o'chira olasiz!",
-          show_alert: true,
-        });
-        return;
+        if (!canDelete) {
+          await ctx.answerCallbackQuery({
+            text: "❌ Siz faqat o'zingiz yaratgan yoki o'zingizdan keyin qo'shilgan adminlarni o'chira olasiz!",
+            show_alert: true,
+          });
+          return;
+        }
       }
 
       await this.adminService.deleteAdmin(adminTelegramId);
@@ -2673,10 +2819,16 @@ Biz yuklayotgan kinolar turli saytlardan olinadi.
     const username = session?.data?.username || String(telegramId);
 
     try {
+      // SUPERADMIN uchun to'liq huquqlar
+      const canAddAdmin = role === 'SUPERADMIN';
+      const canDeleteContent = role === 'SUPERADMIN' || role === 'MANAGER';
+
       await this.adminService.createAdmin({
         telegramId,
         username,
         role,
+        canAddAdmin,
+        canDeleteContent,
         createdBy: ctx.from.id.toString(),
       });
 

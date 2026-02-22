@@ -6,17 +6,43 @@ export class AdminKeyboard {
     const keyboard = new Keyboard()
       .text('🎬 Kino yuklash')
       .text('📺 Serial yuklash')
-      .row()
-      .text('📊 Statistika')
-      .text('📁 Fieldlar')
       .row();
 
-    if (role === AdminRole.MANAGER || role === AdminRole.SUPERADMIN) {
-      keyboard.text('📢 Majburiy kanallar').text('💾 Database kanallar').row();
+    // ADMIN roli: Faqat content yuklash, kanal qo'shish va e'lon berish
+    if (role === AdminRole.ADMIN) {
+      keyboard
+        .text('📁 Fieldlar')
+        .text('💾 Database kanallar')
+        .row()
+        .text('📣 Reklama yuborish')
+        .row();
     }
 
-    if (role === AdminRole.SUPERADMIN) {
+    // MANAGER roli: Ko'proq huquqlar + majburiy kanallar
+    else if (role === AdminRole.MANAGER) {
       keyboard
+        .text('📊 Statistika')
+        .text('📁 Fieldlar')
+        .row()
+        .text('📢 Majburiy kanallar')
+        .text('💾 Database kanallar')
+        .row()
+        .text('📣 Reklama yuborish')
+        .text("🗑️ Kontent o'chirish")
+        .row()
+        .text('🌐 Web Panel')
+        .row();
+    }
+
+    // SUPERADMIN roli: Hamma huquqlar
+    else if (role === AdminRole.SUPERADMIN) {
+      keyboard
+        .text('📊 Statistika')
+        .text('📁 Fieldlar')
+        .row()
+        .text('📢 Majburiy kanallar')
+        .text('💾 Database kanallar')
+        .row()
         .text('👥 Adminlar')
         .text('📣 Reklama yuborish')
         .row()
@@ -24,12 +50,12 @@ export class AdminKeyboard {
         .text('⚙️ Sozlamalar')
         .row()
         .text("🗑️ Kontent o'chirish")
+        .row()
+        .text('🌐 Web Panel')
         .row();
-    } else if (role === AdminRole.MANAGER) {
-      keyboard.text("🗑️ Kontent o'chirish").row();
     }
 
-    keyboard.text('🌐 Web Panel').row().text('🔙 Orqaga');
+    keyboard.text('🔙 Orqaga');
 
     return { reply_markup: keyboard.resized() };
   }
