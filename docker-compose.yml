@@ -12,7 +12,7 @@ services:
     ports:
       - "5445:5432"
     volumes:
-      - baza_data:/var/lib/postgresql/data
+      - baza_data:/var/lib/postgresql/da  ta
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s

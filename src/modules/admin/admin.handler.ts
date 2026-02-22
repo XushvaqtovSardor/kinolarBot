@@ -2670,7 +2670,7 @@ Biz yuklayotgan kinolar turli saytlardan olinadi.
     const telegramId = match[2];
 
     const session = this.sessionService.getSession(ctx.from.id);
-    const username = session?.data?.username || telegramId;
+    const username = session?.data?.username || String(telegramId);
 
     try {
       await this.adminService.createAdmin({
@@ -3510,7 +3510,7 @@ Qaysi guruhga xabar yubormoqchisiz?
 
       this.sessionService.updateSessionData(ctx.from.id, {
         telegramId,
-        username: username || telegramId,
+        username: username || String(telegramId),
       });
 
       const message = `
