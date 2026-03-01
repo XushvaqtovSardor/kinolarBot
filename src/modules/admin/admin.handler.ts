@@ -4897,11 +4897,19 @@ Qaysi rol berasiz?
 
   private async showAllUsers(ctx: BotContext) {
     try {
-      const admin = await this.getAdmin(ctx);
-      if (!admin) return;
+      this.logger.log('📋 showAllUsers started');
 
+      const admin = await this.getAdmin(ctx);
+      if (!admin) {
+        this.logger.warn('No admin found');
+        return;
+      }
+
+      this.logger.log(`Admin found: ${admin.telegramId}`);
+
+      this.logger.log('Fetching users from database...');
       const users = await this.prisma.user.findMany({
-        take: 50, // Show first 50 users
+        take: 50,
         orderBy: [{ createdAt: 'desc' }],
         select: {
           id: true,
@@ -4916,56 +4924,62 @@ Qaysi rol berasiz?
         },
       });
 
+      this.logger.log(`Found ${users.length} users`);
+
       if (users.length === 0) {
         await ctx.reply('❌ Foydalanuvchilar topilmadi.');
         return;
       }
 
-      // Helper function to escape HTML special characters
-      const escapeHtml = (text: string): string => {
-        if (!text) return '';
-        return text.replace(/&/g, '&amp;')
-          .replace(/</g, '&lt;')
-          .replace(/>/g, '&gt;');
-      };
-
-      // Split users into chunks to avoid message length limit
+      // Simple text formatting without HTML
       const chunkSize = 20;
       for (let i = 0; i < users.length; i += chunkSize) {
         const chunk = users.slice(i, i + chunkSize);
-        let message = `👥 <b>Barcha foydalanuvchilar</b> (${i + 1}-${Math.min(i + chunkSize, users.length)} / ${users.length}):\n\n`;
+        let message = `👥 Barcha foydalanuvchilar (${i + 1}-${Math.min(i + chunkSize, users.length)} / ${users.length}):\n\n`;
 
         chunk.forEach((user, index) => {
           const globalIndex = i + index + 1;
           const status = user.isBlocked ? '🚫' : user.isPremium ? '💎' : '👤';
-          const username = user.username ? `@${user.username}` : "Username yo'q";
-          const name = escapeHtml(user.firstName || "Ism yo'q");
+          const username = user.username ? `@${user.username}` : "Username yoq";
+          const name = user.firstName || "Ism yoq";
 
-          message += `${globalIndex}. ${status} ${name} (${escapeHtml(username)})\n`;
-          message += `   ID: <code>${user.telegramId}</code>\n`;
+          message += `${globalIndex}. ${status} ${name} (${username})\n`;
+          message += `   ID: ${user.telegramId}\n`;
           if (user.hasTelegramPremium) message += `   ⭐️ Telegram Premium\n`;
           message += `\n`;
         });
 
-        try {
-          await ctx.reply(message, { parse_mode: 'HTML' });
-        } catch (replyError) {
-          // If HTML fails, try without formatting
-          this.logger.warn('Failed to send with HTML, sending as plain text:', replyError.message);
-          await ctx.reply(message.replace(/<[^>]*>/g, ''));
-        }
+        this.logger.log(`Sending chunk ${i / chunkSize + 1}...`);
+        await ctx.reply(message);
 
-        // Small delay between messages to avoid rate limiting
+        // Small delay between messages
         if (i + chunkSize < users.length) {
           await new Promise(resolve => setTimeout(resolve, 100));
         }
       }
+
+      this.logger.log('✅ showAllUsers completed successfully');
     } catch (error) {
-      this.logger.error('Error showing all users:');
-      this.logger.error(`Message: ${error.message}`);
-      this.logger.error(`Stack: ${error.stack}`);
-      this.logger.error(`Code: ${error.code || 'N/A'}`);
-      await ctx.reply('❌ Xatolik yuz berdi. Iltimos qaytadan urinib ko\'ring.').catch(() => { });
+      this.logger.error('❌ Error showing all users:');
+      this.logger.error('Error details:');
+      console.error(error); // Full error object
+
+      if (error && typeof error === 'object') {
+        this.logger.error(`  - Message: ${error.message || 'N/A'}`);
+        this.logger.error(`  - Name: ${error.name || 'N/A'}`);
+        this.logger.error(`  - Stack: ${error.stack || 'N/A'}`);
+        if ('code' in error) {
+          this.logger.error(`  - Code: ${error.code}`);
+        }
+      } else {
+        this.logger.error(`  - Raw error: ${String(error)}`);
+      }
+
+      try {
+        await ctx.reply('❌ Xatolik yuz berdi. Iltimos qaytadan urinib ko\'ring.');
+      } catch (replyError) {
+        this.logger.error('Failed to send error message to user');
+      }
     }
   }
 
