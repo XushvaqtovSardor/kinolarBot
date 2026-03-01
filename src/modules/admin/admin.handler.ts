@@ -4921,36 +4921,38 @@ Qaysi rol berasiz?
         return;
       }
 
-      // Helper function to escape markdown special characters
-      const escapeMarkdown = (text: string): string => {
+      // Helper function to escape HTML special characters
+      const escapeHtml = (text: string): string => {
         if (!text) return '';
-        return text.replace(/([_*\[\]()~`>#+\-=|{}.!\\])/g, '\\$1');
+        return text.replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;');
       };
 
       // Split users into chunks to avoid message length limit
       const chunkSize = 20;
       for (let i = 0; i < users.length; i += chunkSize) {
         const chunk = users.slice(i, i + chunkSize);
-        let message = `👥 **Barcha foydalanuvchilar** (${i + 1}-${Math.min(i + chunkSize, users.length)} / ${users.length}):\n\n`;
+        let message = `👥 <b>Barcha foydalanuvchilar</b> (${i + 1}-${Math.min(i + chunkSize, users.length)} / ${users.length}):\n\n`;
 
         chunk.forEach((user, index) => {
           const globalIndex = i + index + 1;
           const status = user.isBlocked ? '🚫' : user.isPremium ? '💎' : '👤';
           const username = user.username ? `@${user.username}` : "Username yo'q";
-          const name = escapeMarkdown(user.firstName || "Ism yo'q");
+          const name = escapeHtml(user.firstName || "Ism yo'q");
 
-          message += `${globalIndex}\\. ${status} ${name} \\(${escapeMarkdown(username)}\\)\n`;
-          message += `   ID: \`${user.telegramId}\`\n`;
+          message += `${globalIndex}. ${status} ${name} (${escapeHtml(username)})\n`;
+          message += `   ID: <code>${user.telegramId}</code>\n`;
           if (user.hasTelegramPremium) message += `   ⭐️ Telegram Premium\n`;
           message += `\n`;
         });
 
         try {
-          await ctx.reply(message, { parse_mode: 'MarkdownV2' });
+          await ctx.reply(message, { parse_mode: 'HTML' });
         } catch (replyError) {
-          // If MarkdownV2 fails, try without markdown
-          this.logger.warn('Failed to send with MarkdownV2, sending as plain text:', replyError.message);
-          await ctx.reply(message.replace(/[\\*_`]/g, ''));
+          // If HTML fails, try without formatting
+          this.logger.warn('Failed to send with HTML, sending as plain text:', replyError.message);
+          await ctx.reply(message.replace(/<[^>]*>/g, ''));
         }
 
         // Small delay between messages to avoid rate limiting
@@ -4959,13 +4961,11 @@ Qaysi rol berasiz?
         }
       }
     } catch (error) {
-      this.logger.error('Error showing all users:', error);
-      this.logger.error('Error details:', {
-        message: error?.message,
-        stack: error?.stack,
-        code: error?.code,
-      });
-      await ctx.reply('❌ Xatolik yuz berdi. Iltimos qaytadan urinib ko\'ring.');
+      this.logger.error('Error showing all users:');
+      this.logger.error(`Message: ${error.message}`);
+      this.logger.error(`Stack: ${error.stack}`);
+      this.logger.error(`Code: ${error.code || 'N/A'}`);
+      await ctx.reply('❌ Xatolik yuz berdi. Iltimos qaytadan urinib ko\'ring.').catch(() => { });
     }
   }
 

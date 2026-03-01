@@ -1,10 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { Language } from '@prisma/client';
 
 @Injectable()
 export class UserService {
-  constructor(private prisma: PrismaService) {}
+  private readonly logger = new Logger(UserService.name);
+
+  constructor(private prisma: PrismaService) { }
 
   async findOrCreate(
     telegramId: string,
@@ -92,9 +94,18 @@ export class UserService {
   }
 
   async getAllUsers() {
-    return this.prisma.user.findMany({
-      orderBy: { createdAt: 'desc' },
-    });
+    try {
+      this.logger.log('📋 Fetching all users from database...');
+      const users = await this.prisma.user.findMany({
+        orderBy: { createdAt: 'desc' },
+      });
+      this.logger.log(`✅ Successfully fetched ${users.length} users`);
+      return users;
+    } catch (error) {
+      this.logger.error(`❌ Error in getAllUsers: ${error.message}`);
+      this.logger.error('Stack:', error.stack);
+      throw error;
+    }
   }
 
   async findAll() {
@@ -108,7 +119,7 @@ export class UserService {
         this.prisma.user.count({ where: { isPremium: true } }),
         this.prisma.user.count({ where: { isBlocked: true } }),
         this.prisma.user.count({
-          where: { 
+          where: {
             lastActivity: {
               gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // Last 30 days
             },

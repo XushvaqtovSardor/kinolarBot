@@ -200,25 +200,62 @@ export class AdminApiController {
 
   @Get('users')
   async getUsers() {
-    return this.userService.getAllUsers();
+    this.logger.log('📋 Get all users requested');
+    try {
+      const users = await this.userService.getAllUsers();
+      this.logger.log(`✅ Successfully fetched ${users.length} users`);
+      return users;
+    } catch (error) {
+      this.logger.error(`❌ Error fetching users: ${error.message}`);
+      this.logger.error('Stack:', error.stack);
+      throw error;
+    }
   }
 
   @Get('users/:telegramId')
   async getUser(@Param('telegramId') telegramId: string) {
-    return this.userService.findByTelegramId(telegramId);
+    this.logger.log(`📋 Get user ${telegramId} requested`);
+    try {
+      return await this.userService.findByTelegramId(telegramId);
+    } catch (error) {
+      this.logger.error(`❌ Error fetching user ${telegramId}: ${error.message}`);
+      throw error;
+    }
   }
 
   @Put('users/:telegramId/block')
   async blockUser(
     @Param('telegramId') telegramId: string,
-    @Body() body: { reason?: string },
+    @Body() body: { block?: boolean; reason?: string },
   ) {
-    return this.userService.blockUser(telegramId, body.reason);
+    this.logger.log(`🚫 ${body.block !== false ? 'Blocking' : 'Unblocking'} user ${telegramId}`);
+    try {
+      if (body.block === false) {
+        const result = await this.userService.unblockUser(telegramId);
+        this.logger.log(`✅ User ${telegramId} unblocked successfully`);
+        return result;
+      } else {
+        const result = await this.userService.blockUser(telegramId, body.reason);
+        this.logger.log(`✅ User ${telegramId} blocked successfully`);
+        return result;
+      }
+    } catch (error) {
+      this.logger.error(`❌ Error blocking/unblocking user ${telegramId}: ${error.message}`);
+      throw error;
+    }
   }
 
   @Put('users/:telegramId/unblock')
   async unblockUser(@Param('telegramId') telegramId: string) {
-    return this.userService.unblockUser(telegramId);
+    this.logger.log(`✅ Unblocking user ${telegramId}`);
+    try {
+      const result = await this.userService.unblockUser(telegramId);
+      this.logger.log(`✅ User ${telegramId} unblocked successfully`);
+      return result;
+    } catch (error) {
+      this.logger.error(`❌ Error unblocking user ${telegramId}: ${error.message}`);
+      throw error;
+    }
   }
 
   @Get('fields')
