@@ -5016,47 +5016,34 @@ Qaysi rol berasiz?
       this.logger.log('✅ showAllUsers completed successfully');
     } catch (error) {
       this.logger.error('❌ Error showing all users:');
-      this.logger.error('Error details:');
 
-      // Try to extract maximum information
-      if (!error) {
-        this.logger.error('  - Error is null or undefined!');
-      } else if (typeof error === 'string') {
-        this.logger.error(`  - String error: ${error}`);
-      } else if (typeof error === 'object') {
-        this.logger.error(`  - Type: ${typeof error}`);
-        this.logger.error(`  - Constructor: ${error.constructor?.name || 'N/A'}`);
-        this.logger.error(`  - Message: ${error.message || 'N/A'}`);
-        this.logger.error(`  - Name: ${error.name || 'N/A'}`);
+      // Extract error details in a single line
+      const errorType = typeof error;
+      const errorMessage = error?.message || 'N/A';
+      const errorName = error?.name || 'N/A';
+      const errorConstructor = error?.constructor?.name || 'N/A';
+      const hasStack = error?.stack ? 'YES' : 'NO';
 
-        if (error.stack) {
-          this.logger.error(`  - Stack trace:`);
-          this.logger.error(error.stack);
-        } else {
-          this.logger.error(`  - No stack trace available`);
-        }
+      this.logger.error(`ERROR_TYPE=${errorType} | ERROR_NAME=${errorName} | ERROR_CONSTRUCTOR=${errorConstructor} | MESSAGE=${errorMessage} | HAS_STACK=${hasStack}`);
 
-        if ('code' in error) {
-          this.logger.error(`  - Code: ${error.code}`);
-        }
+      if (error?.stack) {
+        this.logger.error('STACK_TRACE_START');
+        this.logger.error(String(error.stack));
+        this.logger.error('STACK_TRACE_END');
+      }
 
-        // Try to serialize the whole object
-        try {
-          const serialized = JSON.stringify(error, Object.getOwnPropertyNames(error), 2);
-          this.logger.error(`  - Full error object: ${serialized}`);
-        } catch (serError) {
-          this.logger.error(`  - Could not serialize error: ${serError.message}`);
-        }
-      } else {
-        this.logger.error(`  - Unknown error type: ${typeof error}`);
-        this.logger.error(`  - Value: ${String(error)}`);
+      // Also try to stringify
+      try {
+        const stringified = JSON.stringify(error, Object.getOwnPropertyNames(error));
+        this.logger.error(`STRINGIFIED_ERROR=${stringified}`);
+      } catch (stringifyError) {
+        this.logger.error(`STRINGIFY_FAILED=${stringifyError?.message}`);
       }
 
       try {
         await ctx.reply('❌ Xatolik yuz berdi. Iltimos qaytadan urinib ko\'ring.');
       } catch (replyError) {
-        this.logger.error('Failed to send error message to user');
-        this.logger.error(`Reply error: ${replyError?.message || 'Unknown'}`);
+        this.logger.error(`REPLY_ERROR=${replyError?.message || 'Unknown'}`);
       }
     }
   }
