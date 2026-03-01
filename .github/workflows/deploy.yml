@@ -35,8 +35,14 @@ jobs:
             echo "Stopping containers"
             docker compose down
 
+            echo "Removing old images to force rebuild"
+            docker rmi $(docker images -q kinolarbot-app) 2>/dev/null || true
+
             echo "Building containers (no cache)"
             docker compose build --no-cache
 
             echo "Running containers"
             docker compose up -d
+            
+            echo "Cleaning up old images"
+            docker image prune -f
