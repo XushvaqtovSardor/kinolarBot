@@ -4940,99 +4940,127 @@ Qaysi rol berasiz?
   }
 
   private async showAllUsers(ctx: BotContext) {
+    // Multiple logging methods for debugging
+    console.log('===== showAllUsers FUNCTION CALLED =====');
+    this.logger.log('===== showAllUsers FUNCTION CALLED =====');
+
     try {
-      this.logger.log('📋 showAllUsers started');
+      // Step 1: Get admin
+      console.log('STEP 1: Getting admin...');
+      this.logger.log('STEP 1: Getting admin...');
 
       const admin = await this.getAdmin(ctx);
+
       if (!admin) {
-        this.logger.warn('No admin found');
+        console.log('STEP 1 FAILED: No admin found');
+        this.logger.warn('STEP 1 FAILED: No admin found');
+        await ctx.reply('❌ Siz admin emassiz!');
         return;
       }
 
-      this.logger.log(`Admin found: ${admin.telegramId}`);
+      console.log(`STEP 1 SUCCESS: Admin found - ${admin.telegramId}`);
+      this.logger.log(`STEP 1 SUCCESS: Admin found - ${admin.telegramId}`);
 
-      this.logger.log('Fetching users from database...');
-      const users = await this.prisma.user.findMany({
-        take: 50,
-        orderBy: [{ createdAt: 'desc' }],
-        select: {
-          id: true,
-          telegramId: true,
-          username: true,
-          firstName: true,
-          lastName: true,
-          isPremium: true,
-          isBlocked: true,
-          hasTelegramPremium: true,
-          createdAt: true,
-        },
-      });
+      // Step 2: Fetch users from database
+      console.log('STEP 2: Fetching users from database...');
+      this.logger.log('STEP 2: Fetching users from database...');
 
-      this.logger.log(`Found ${users.length} users`);
+      let users;
+      try {
+        users = await this.prisma.user.findMany({
+          take: 50,
+          orderBy: [{ createdAt: 'desc' }],
+        });
+        console.log(`STEP 2 SUCCESS: Found ${users.length} users`);
+        this.logger.log(`STEP 2 SUCCESS: Found ${users.length} users`);
+      } catch (dbError) {
+        console.log('STEP 2 FAILED: Database error');
+        console.log('DB_ERROR:', dbError);
+        this.logger.error('STEP 2 FAILED: Database error');
+        this.logger.error(`DB_ERROR: ${dbError?.message || 'Unknown'}`);
+        throw dbError;
+      }
 
       if (users.length === 0) {
+        console.log('No users found in database');
         await ctx.reply('❌ Foydalanuvchilar topilmadi.');
         return;
       }
 
-      // Simple text formatting without HTML
-      const chunkSize = 20;
-      for (let i = 0; i < users.length; i += chunkSize) {
-        const chunk = users.slice(i, i + chunkSize);
-        let message = `👥 Barcha foydalanuvchilar (${i + 1}-${Math.min(i + chunkSize, users.length)} / ${users.length}):\n\n`;
+      // Step 3: Send users to Telegram
+      console.log('STEP 3: Sending users to Telegram...');
+      this.logger.log('STEP 3: Sending users to Telegram...');
 
-        chunk.forEach((user, index) => {
-          const globalIndex = i + index + 1;
-          const status = user.isBlocked ? '🚫' : user.isPremium ? '💎' : '👤';
-          const username = user.username ? `@${user.username}` : "Username yoq";
-          const name = user.firstName || "Ism yoq";
+      let message = `👥 BARCHA FOYDALANUVCHILAR (${users.length} ta):\n\n`;
 
-          message += `${globalIndex}. ${status} ${name} (${username})\n`;
-          message += `   ID: ${user.telegramId}\n`;
-          if (user.hasTelegramPremium) message += `   ⭐️ Telegram Premium\n`;
-          message += `\n`;
-        });
+      users.forEach((user, index) => {
+        const num = index + 1;
+        const status = user.isBlocked ? '🚫' : user.isPremium ? '💎' : '👤';
+        const username = user.username ? `@${user.username}` : 'Username yoq';
+        const name = user.firstName || 'Ism yoq';
 
-        this.logger.log(`Sending chunk ${i / chunkSize + 1}...`);
-        await ctx.reply(message);
-
-        // Small delay between messages
-        if (i + chunkSize < users.length) {
-          await new Promise(resolve => setTimeout(resolve, 100));
+        message += `${num}. ${status} ${name} (${username})\n`;
+        message += `   ID: ${user.telegramId}\n`;
+        if (user.hasTelegramPremium) {
+          message += `   ⭐️ Telegram Premium\n`;
         }
+        message += `\n`;
+
+        // Send in chunks of 20 to avoid message length limit
+        if (num % 20 === 0 && num < users.length) {
+          console.log(`Sending chunk at ${num}...`);
+          ctx.reply(message).catch(e => {
+            console.log(`Failed to send chunk: ${e.message}`);
+          });
+          message = `👥 DAVOMI (${num + 1}-${Math.min(num + 20, users.length)}):\n\n`;
+        }
+      });
+
+      // Send remaining users
+      if (message.length > 50) {
+        console.log('Sending final chunk...');
+        await ctx.reply(message);
       }
 
-      this.logger.log('✅ showAllUsers completed successfully');
-    } catch (error) {
-      this.logger.error('❌ Error showing all users:');
+      console.log('STEP 3 SUCCESS: All users sent');
+      this.logger.log('STEP 3 SUCCESS: All users sent');
+      console.log('===== showAllUsers COMPLETED SUCCESSFULLY =====');
+      this.logger.log('===== showAllUsers COMPLETED SUCCESSFULLY =====');
 
-      // Extract error details in a single line
-      const errorType = typeof error;
-      const errorMessage = error?.message || 'N/A';
-      const errorName = error?.name || 'N/A';
-      const errorConstructor = error?.constructor?.name || 'N/A';
-      const hasStack = error?.stack ? 'YES' : 'NO';
+    } catch (err) {
+      // Maximum error logging with all possible methods
+      console.log('!!!!! ERROR IN showAllUsers !!!!!');
+      console.log('Error object:', err);
+      console.log('Error type:', typeof err);
+      console.log('Error message:', err?.message);
+      console.log('Error name:', err?.name);
+      console.log('Error stack:', err?.stack);
 
-      this.logger.error(`ERROR_TYPE=${errorType} | ERROR_NAME=${errorName} | ERROR_CONSTRUCTOR=${errorConstructor} | MESSAGE=${errorMessage} | HAS_STACK=${hasStack}`);
+      this.logger.error('!!!!! ERROR IN showAllUsers !!!!!');
+      this.logger.error('Error type: ' + typeof err);
+      this.logger.error('Error message: ' + (err?.message || 'NO MESSAGE'));
+      this.logger.error('Error name: ' + (err?.name || 'NO NAME'));
 
-      if (error?.stack) {
-        this.logger.error('STACK_TRACE_START');
-        this.logger.error(String(error.stack));
-        this.logger.error('STACK_TRACE_END');
+      if (err?.stack) {
+        this.logger.error('Stack trace:');
+        this.logger.error(String(err.stack));
       }
 
-      // Also try to stringify
       try {
-        const stringified = JSON.stringify(error, Object.getOwnPropertyNames(error));
-        this.logger.error(`STRINGIFIED_ERROR=${stringified}`);
-      } catch (stringifyError) {
-        this.logger.error(`STRINGIFY_FAILED=${stringifyError?.message}`);
+        const errString = JSON.stringify(err, Object.getOwnPropertyNames(err));
+        console.log('Error JSON:', errString);
+        this.logger.error('Error JSON: ' + errString);
+      } catch (jsonErr) {
+        console.log('Cannot stringify error');
+        this.logger.error('Cannot stringify error');
       }
 
+      // Try to send error to user
       try {
         await ctx.reply('❌ Xatolik yuz berdi. Iltimos qaytadan urinib ko\'ring.');
-      } catch (replyError) {
-        this.logger.error(`REPLY_ERROR=${replyError?.message || 'Unknown'}`);
+      } catch (replyErr) {
+        console.log('Failed to send error reply:', replyErr);
+        this.logger.error('Failed to send error reply: ' + replyErr?.message);
       }
     }
   }
