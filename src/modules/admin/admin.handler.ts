@@ -790,34 +790,23 @@ export class AdminHandler implements OnModuleInit {
         await handler(ctx, admin);
         this.logger.log(`✅ Handler completed successfully for admin: ${admin.telegramId}`);
       } catch (error) {
-        this.logger.error('❌ Error in withRoleCheck wrapper:');
+        this.logger.error('❌❌❌ WRAPPER_ERROR_CAUGHT ❌❌❌');
 
-        if (!error) {
-          this.logger.error('  - Error is null or undefined in withRoleCheck!');
-        } else if (typeof error === 'object') {
-          this.logger.error(`  - Type: ${typeof error}`);
-          this.logger.error(`  - Message: ${error.message || 'N/A'}`);
-          this.logger.error(`  - Name: ${error.name || 'N/A'}`);
+        const errorType = typeof error;
+        const errorMsg = error?.message || 'NO_MESSAGE';
+        const errorName = error?.name || 'NO_NAME';
 
-          if (error.stack) {
-            this.logger.error(`  - Stack:`);
-            this.logger.error(error.stack);
-          }
+        this.logger.error(`WRAPPER_ERROR | TYPE=${errorType} | NAME=${errorName} | MSG=${errorMsg}`);
 
-          try {
-            const serialized = JSON.stringify(error, Object.getOwnPropertyNames(error), 2);
-            this.logger.error(`  - Serialized: ${serialized}`);
-          } catch (e) {
-            this.logger.error(`  - Cannot serialize`);
-          }
-        } else {
-          this.logger.error(`  - Error type: ${typeof error}, value: ${String(error)}`);
+        if (error?.stack) {
+          this.logger.error('WRAPPER_STACK:');
+          this.logger.error(String(error.stack));
         }
 
         try {
           await ctx.reply('❌ Xatolik yuz berdi. Iltimos qaytadan urinib ko\'ring.');
         } catch (replyError) {
-          this.logger.error('Failed to send error reply:', replyError?.message);
+          this.logger.error(`WRAPPER_REPLY_ERROR=${replyError?.message}`);
         }
       }
     };
