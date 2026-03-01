@@ -786,18 +786,38 @@ export class AdminHandler implements OnModuleInit {
           return;
         }
 
+        this.logger.log(`🔐 Calling handler for admin: ${admin.telegramId}, role: ${admin.role}`);
         await handler(ctx, admin);
+        this.logger.log(`✅ Handler completed successfully for admin: ${admin.telegramId}`);
       } catch (error) {
         this.logger.error('❌ Error in withRoleCheck wrapper:');
-        this.logger.error(`Handler error: ${error?.message || 'Unknown error'}`);
-        this.logger.error(`Error name: ${error?.name || 'N/A'}`);
-        this.logger.error(`Error stack: ${error?.stack || 'N/A'}`);
-        console.error('Full error object:', error);
+
+        if (!error) {
+          this.logger.error('  - Error is null or undefined in withRoleCheck!');
+        } else if (typeof error === 'object') {
+          this.logger.error(`  - Type: ${typeof error}`);
+          this.logger.error(`  - Message: ${error.message || 'N/A'}`);
+          this.logger.error(`  - Name: ${error.name || 'N/A'}`);
+
+          if (error.stack) {
+            this.logger.error(`  - Stack:`);
+            this.logger.error(error.stack);
+          }
+
+          try {
+            const serialized = JSON.stringify(error, Object.getOwnPropertyNames(error), 2);
+            this.logger.error(`  - Serialized: ${serialized}`);
+          } catch (e) {
+            this.logger.error(`  - Cannot serialize`);
+          }
+        } else {
+          this.logger.error(`  - Error type: ${typeof error}, value: ${String(error)}`);
+        }
 
         try {
           await ctx.reply('❌ Xatolik yuz berdi. Iltimos qaytadan urinib ko\'ring.');
         } catch (replyError) {
-          this.logger.error('Failed to send error reply:', replyError);
+          this.logger.error('Failed to send error reply:', replyError?.message);
         }
       }
     };
@@ -4997,23 +5017,46 @@ Qaysi rol berasiz?
     } catch (error) {
       this.logger.error('❌ Error showing all users:');
       this.logger.error('Error details:');
-      console.error(error); // Full error object
 
-      if (error && typeof error === 'object') {
+      // Try to extract maximum information
+      if (!error) {
+        this.logger.error('  - Error is null or undefined!');
+      } else if (typeof error === 'string') {
+        this.logger.error(`  - String error: ${error}`);
+      } else if (typeof error === 'object') {
+        this.logger.error(`  - Type: ${typeof error}`);
+        this.logger.error(`  - Constructor: ${error.constructor?.name || 'N/A'}`);
         this.logger.error(`  - Message: ${error.message || 'N/A'}`);
         this.logger.error(`  - Name: ${error.name || 'N/A'}`);
-        this.logger.error(`  - Stack: ${error.stack || 'N/A'}`);
+
+        if (error.stack) {
+          this.logger.error(`  - Stack trace:`);
+          this.logger.error(error.stack);
+        } else {
+          this.logger.error(`  - No stack trace available`);
+        }
+
         if ('code' in error) {
           this.logger.error(`  - Code: ${error.code}`);
         }
+
+        // Try to serialize the whole object
+        try {
+          const serialized = JSON.stringify(error, Object.getOwnPropertyNames(error), 2);
+          this.logger.error(`  - Full error object: ${serialized}`);
+        } catch (serError) {
+          this.logger.error(`  - Could not serialize error: ${serError.message}`);
+        }
       } else {
-        this.logger.error(`  - Raw error: ${String(error)}`);
+        this.logger.error(`  - Unknown error type: ${typeof error}`);
+        this.logger.error(`  - Value: ${String(error)}`);
       }
 
       try {
         await ctx.reply('❌ Xatolik yuz berdi. Iltimos qaytadan urinib ko\'ring.');
       } catch (replyError) {
         this.logger.error('Failed to send error message to user');
+        this.logger.error(`Reply error: ${replyError?.message || 'Unknown'}`);
       }
     }
   }
