@@ -727,18 +727,39 @@ export class AdminHandler implements OnModuleInit {
   }
 
   private async getAdmin(ctx: BotContext) {
-    if (!ctx.from) return null;
-    const admin = await this.adminService.getAdminByTelegramId(
-      String(ctx.from.id),
-    );
-    return admin;
+    try {
+      if (!ctx.from) return null;
+      const admin = await this.adminService.getAdminByTelegramId(
+        String(ctx.from.id),
+      );
+      return admin;
+    } catch (error) {
+      this.logger.error('❌ Error in getAdmin:');
+      this.logger.error(`Error: ${error?.message || 'Unknown'}`);
+      console.error('getAdmin error:', error);
+      return null;
+    }
   }
 
   private withAdminCheck(handler: (ctx: BotContext) => Promise<void>) {
     return async (ctx: BotContext) => {
-      const admin = await this.getAdmin(ctx);
-      if (admin) {
-        await handler(ctx);
+      try {
+        const admin = await this.getAdmin(ctx);
+        if (admin) {
+          await handler(ctx);
+        }
+      } catch (error) {
+        this.logger.error('❌ Error in withAdminCheck wrapper:');
+        this.logger.error(`Handler error: ${error?.message || 'Unknown error'}`);
+        this.logger.error(`Error name: ${error?.name || 'N/A'}`);
+        this.logger.error(`Error stack: ${error?.stack || 'N/A'}`);
+        console.error('Full error object:', error);
+
+        try {
+          await ctx.reply('❌ Xatolik yuz berdi. Iltimos qaytadan urinib ko\'ring.');
+        } catch (replyError) {
+          this.logger.error('Failed to send error reply:', replyError);
+        }
       }
     };
   }
@@ -749,22 +770,36 @@ export class AdminHandler implements OnModuleInit {
     handler: (ctx: BotContext, admin: any) => Promise<void>,
   ) {
     return async (ctx: BotContext) => {
-      const admin = await this.getAdmin(ctx);
-      if (!admin) {
-        await ctx.reply('❌ Siz admin emassiz!');
-        return;
-      }
+      try {
+        const admin = await this.getAdmin(ctx);
+        if (!admin) {
+          await ctx.reply('❌ Siz admin emassiz!');
+          return;
+        }
 
-      if (!requiredRoles.includes(admin.role)) {
-        await ctx.reply(
-          '❌ Bu funksiya uchun sizda ruxsat yo\'q!\n\n' +
-          '💡 Sizning rolingiz: ' + admin.role + '\n' +
-          '📋 Bu funksiya faqat ' + requiredRoles.join(' yoki ') + ' uchun.',
-        );
-        return;
-      }
+        if (!requiredRoles.includes(admin.role)) {
+          await ctx.reply(
+            '❌ Bu funksiya uchun sizda ruxsat yo\'q!\n\n' +
+            '💡 Sizning rolingiz: ' + admin.role + '\n' +
+            '📋 Bu funksiya faqat ' + requiredRoles.join(' yoki ') + ' uchun.',
+          );
+          return;
+        }
 
-      await handler(ctx, admin);
+        await handler(ctx, admin);
+      } catch (error) {
+        this.logger.error('❌ Error in withRoleCheck wrapper:');
+        this.logger.error(`Handler error: ${error?.message || 'Unknown error'}`);
+        this.logger.error(`Error name: ${error?.name || 'N/A'}`);
+        this.logger.error(`Error stack: ${error?.stack || 'N/A'}`);
+        console.error('Full error object:', error);
+
+        try {
+          await ctx.reply('❌ Xatolik yuz berdi. Iltimos qaytadan urinib ko\'ring.');
+        } catch (replyError) {
+          this.logger.error('Failed to send error reply:', replyError);
+        }
+      }
     };
   }
 
