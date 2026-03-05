@@ -1038,7 +1038,7 @@ ${movieDeepLink}`.trim();
 ▶️ Kinoning to'liq qismini @${botUsername} dan tomosha qilishingiz mumkin!`;
 
         keyboard
-          .switchInline('📤 Ulashish', shareText)
+          .switchInline('♻️Ulashish', shareText)
           .row()
           .text('🔙 Orqaga', 'back_to_main');
 
@@ -1080,7 +1080,7 @@ ${movieDeepLink}`.trim();
 ▶️ Kinoning to'liq qismini @${botUsername} dan tomosha qilishingiz mumkin!`;
 
           const shareKeyboard = new InlineKeyboard().switchInline(
-            '📤 Ulashish',
+            '♻️Ulashish',
             shareText,
           );
           const videoCaption = `╭────────────────────
@@ -1206,7 +1206,7 @@ Biz yuklayotgan kinolar turli saytlardan olinadi.
 
       // 10. Ulashish va orqaga tugmalari
       keyboard
-        .switchInline('📤 Ulashish', shareText)
+        .switchInline('♻️Ulashish', shareText)
         .row()
         .text('🔙 Orqaga', 'back_to_main');
       // 11. Poster bilan yuborish
@@ -2112,7 +2112,7 @@ Biz yuklayotgan kinolar turli saytlardan olinadi.
       const shareKeyboard = new InlineKeyboard()
         .url(`📺 Serial kodi: ${serial.code}`, serialDeepLink)
         .row()
-        .switchInline('📤 Ulashish', shareText);
+        .switchInline('♻️Ulashish', shareText);
 
       const videoCaption = `╭────────────────────
 ├‣ Serial nomi : ${serial.title}
@@ -2206,7 +2206,7 @@ Biz yuklayotgan kinolar turli saytlardan olinadi.
       const shareKeyboard = new InlineKeyboard()
         .url(`🎬 Kino kodi: ${movie.code}`, movieDeepLink)
         .row()
-        .switchInline('📤 Ulashish', shareText);
+        .switchInline('♻️Ulashish', shareText);
 
       const videoCaption = `╭────────────────────
 ├‣ Kino nomi : ${movie.title}

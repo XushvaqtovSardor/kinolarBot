@@ -38,6 +38,71 @@ export class SerialManagementService {
     private grammyBot: GrammyBotService,
   ) { }
 
+  private buildSerialCaption(data: {
+    title: string;
+    code: string | number;
+    episodeNumber?: number;
+    totalEpisodes?: number;
+    genre?: string;
+    description?: string;
+    rating?: string;
+    language?: string;
+    subtitle?: boolean;
+    fieldLink: string;
+    botUsername: string;
+    isEpisode?: boolean;
+  }): string {
+    let caption = `╭────────────────────\n`;
+    caption += `├‣ Serial nomi : ${data.title}\n`;
+    caption += `├‣ Serial kodi: ${data.code}\n`;
+
+    if (data.isEpisode && data.episodeNumber) {
+      caption += `├‣ Qism: ${data.episodeNumber}\n`;
+    } else if (data.totalEpisodes) {
+      caption += `├‣ Qismlar: ${data.totalEpisodes}\n`;
+    }
+
+    if (data.genre) {
+      caption += `├‣ Janrlari: ${data.genre}\n`;
+    }
+
+    if (data.description && !data.isEpisode) {
+      const shortDesc = data.description.length > 200
+        ? data.description.substring(0, 200) + '...'
+        : data.description;
+      caption += `├‣ Tavsif: ${shortDesc}\n`;
+    }
+
+    if (data.rating) {
+      caption += `├‣ ⭐ Rating: ${data.rating}\n`;
+    }
+
+    if (data.language) {
+      caption += `├‣ 🌐 Til: #${data.language.replace(/\s+/g, '')}\n`;
+    }
+
+    if (data.subtitle !== undefined) {
+      caption += `├‣ 📝 Subtitle: ${data.subtitle ? 'Ha✅' : 'Yo\'q'}\n`;
+    }
+
+    caption += `├‣ Kanal: ${data.fieldLink}\n`;
+    caption += `╰────────────────────\n\n`;
+
+    if (data.isEpisode) {
+      caption += `▶️ Kinoning to'liq qismini @${data.botUsername} dan tomosha qilishingiz mumkin!\n\n`;
+    } else {
+      caption += `▶️ Serialning to'liq qismlarini @${data.botUsername} dan tomosha qilishingiz mumkin!\n\n`;
+    }
+
+    caption += `<blockquote expandable>⚠️ ESLATMA:\n`;
+    caption += `Biz yuklayotgan kinolar turli saytlardan olinadi.\n`;
+    caption += `🎰 Ba'zi kinolarda kazino, qimor yoki "pulni ko'paytirib beramiz" degan reklama chiqishi mumkin.\n`;
+    caption += `🚫 Bunday reklamalarga aslo ishonmang! Ular firibgarlar va sizni aldaydi.\n`;
+    caption += `🔞 Ba'zi sahnalar 18+ bo'lishi mumkin – agar noqulay bo'lsa, ko'rishni to'xtating.</blockquote>`;
+
+    return caption;
+  }
+
   async handleNewSerialCode(ctx: BotContext, code: number) {
     if (!ctx.from) return;
 
@@ -254,6 +319,9 @@ export class SerialManagementService {
       selectedField,
       posterFileId,
       episodes,
+      rating,
+      language,
+      subtitle,
     } = session.data;
 
     try {
@@ -288,21 +356,18 @@ export class SerialManagementService {
         for (const dbChannel of dbChannels) {
           try {
             // ASOSIY QISM: Rasmdagi format
-            const caption = `╭────────────────────
-├‣ Serial nomi : ${title}
-├‣ Serial kodi: ${code}
-├‣ Qism: ${ep.episodeNumber}
-├‣ Janrlari: ${genre}
-├‣ Kanal: ${selectedField.channelLink || `https://t.me/${selectedField.channelId?.replace('@', '').replace('-100', '')}`}
-╰────────────────────
-
-▶️ Kinoning to'liq qismini @${botUsername} dan tomosha qilishingiz mumkin!
-
-<blockquote expandable>⚠️ ESLATMA:
-Biz yuklayotgan kinolar turli saytlardan olinadi.
-🎰 Ba'zi kinolarda kazino, qimor yoki "pulni ko'paytirib beramiz" degan reklama chiqishi mumkin.
-🚫 Bunday reklamalarga aslo ishonmang! Ular firibgarlar va sizni aldaydi.
-🔞 Ba'zi sahnalar 18+ bo'lishi mumkin – agar noqulay bo'lsa, ko'rishni to'xtating.</blockquote>`;
+            const caption = this.buildSerialCaption({
+              title,
+              code,
+              genre,
+              fieldLink: selectedField.channelLink || `https://t.me/${selectedField.channelId?.replace('@', '').replace('-100', '')}`,
+              botUsername,
+              rating,
+              language,
+              subtitle,
+              episodeNumber: ep.episodeNumber,
+              isEpisode: true
+            });
 
             const sentVideo = await ctx.api.sendVideo(
               dbChannel.channelId,
@@ -338,6 +403,9 @@ Biz yuklayotgan kinolar turli saytlardan olinadi.
         posterFileId,
         totalEpisodes: episodes.length,
         channelMessageId: 0,
+        language: language || null,
+        rating: rating || null,
+        subtitle: subtitle !== undefined ? subtitle : null,
       });
 
       for (const epData of episodeData) {
@@ -359,21 +427,18 @@ Biz yuklayotgan kinolar turli saytlardan olinadi.
 
       let posterMessageId = 0;
       if (postToField) {
-        const caption = `╭────────────────────
-├‣ Serial nomi : ${title}
-├‣ Serial kodi: ${code}
-├‣ Qismlar: ${episodes.length}
-├‣ Janrlari: ${genre}
-├‣ Kanal: ${selectedField.channelLink || `https://t.me/${selectedField.channelId?.replace('@', '').replace('-100', '')}`}
-╰────────────────────
-
-▶️ Serialning to'liq qismlarini @${botUsername} dan tomosha qilishingiz mumkin!
-
-<blockquote expandable>⚠️ ESLATMA:
-Biz yuklayotgan kinolar turli saytlardan olinadi.
-🎰 Ba'zi kinolarda kazino, qimor yoki "pulni ko'paytirib beramiz" degan reklama chiqishi mumkin.
-🚫 Bunday reklamalarga aslo ishonmang! Ular firibgarlar va sizni aldaydi.
-🔞 Ba'zi sahnalar 18+ bo'lishi mumkin – agar noqulay bo'lsa, ko'rishni to'xtating.</blockquote>`;
+        const caption = this.buildSerialCaption({
+          title,
+          code,
+          genre,
+          fieldLink: selectedField.channelLink || `https://t.me/${selectedField.channelId?.replace('@', '').replace('-100', '')}`,
+          botUsername,
+          rating,
+          language,
+          subtitle,
+          totalEpisodes: episodes.length,
+          isEpisode: false
+        });
 
         const keyboard = new InlineKeyboard().url(
           '✨ Tomosha Qilish',
@@ -700,21 +765,20 @@ Biz yuklayotgan kinolar turli saytlardan olinadi.
           const videoMessages: { channelId: string; messageId: number }[] = [];
           for (const dbChannel of dbChannels) {
             try {
-              const caption = `╭────────────────────
-├‣ Serial nomi: ${serialTitle}
-├‣ Serial kodi: ${serialCode}
-├‣ Qism: ${ep.episodeNumber}
-├‣ Janrlari: ${serialGenre || "Noma'lum"}
-├‣ Kanal: ${dbChannel.channelLink || dbChannel}
-╰────────────────────
-
-▶️ Serialning to'liq qismini https://t.me/${botUsername}?start=${serialCode} dan tomosha qilishingiz mumkin!
-
-<blockquote expandable>⚠️ ESLATMA:
-Biz yuklayotgan kinolar turli saytlardan olinadi.
-🎰 Ba'zi kinolarda kazino, qimor yoki "pulni ko'paytirib beramiz" degan reklama chiqishi mumkin.
-🚫 Bunday reklamalarga aslo ishonmang! Ular firibgarlar va sizni aldaydi.
-🔞 Ba'zi sahnalar 18+ bo'lishi mumkin – agar noqulay bo'lsa, ko'rishni to'xtating.</blockquote>`;
+              // Get serial data to access rating, language, subtitle
+              const serialData = await this.serialService.findById(serialId);
+              const caption = this.buildSerialCaption({
+                title: serialTitle,
+                code: serialCode,
+                genre: serialGenre || "Noma'lum",
+                fieldLink: dbChannel.channelLink || dbChannel.channelId,
+                botUsername,
+                rating: serialData?.rating || undefined,
+                language: serialData?.language || undefined,
+                subtitle: serialData?.subtitle !== null ? serialData?.subtitle : undefined,
+                episodeNumber: ep.episodeNumber,
+                isEpisode: true
+              });
 
               const sentVideo = await ctx.api.sendVideo(
                 dbChannel.channelId,
@@ -747,21 +811,20 @@ Biz yuklayotgan kinolar turli saytlardan olinadi.
         if (updateField && serialChannelMessageId && serialFieldId) {
           const field = await this.fieldService.findOne(serialFieldId);
           if (field) {
-            const caption = `╭────────────────────
-├‣ Serial nomi: ${serialTitle}
-├‣ Serial kodi: ${serialCode}
-├‣ Qismlar: ${totalEpisodes}
-├‣ Janrlari: ${serialGenre || "Noma'lum"}
-├‣ Kanal: ${field.channelLink || '@' + field.name}
-╰────────────────────
-
-▶️ Serialning to'liq qismlarini https://t.me/${this.grammyBot.botUsername}?start=s${serialCode} dan tomosha qilishingiz mumkin!
-
-<blockquote expandable>⚠️ ESLATMA:
-Biz yuklayotgan kinolar turli saytlardan olinadi.
-🎰 Ba'zi kinolarda kazino, qimor yoki "pulni ko'paytirib beramiz" degan reklama chiqishi mumkin.
-🚫 Bunday reklamalarga aslo ishonmang! Ular firibgarlar va sizni aldaydi.
-🔞 Ba'zi sahnalar 18+ bo'lishi mumkin – agar noqulay bo'lsa, ko'rishni to'xtating.</blockquote>`;
+            // Get serial data to access rating, language, subtitle
+            const serialData = await this.serialService.findById(serialId);
+            const caption = this.buildSerialCaption({
+              title: serialTitle,
+              code: serialCode,
+              genre: serialGenre || "Noma'lum",
+              fieldLink: field.channelLink || '@' + field.name,
+              botUsername: this.grammyBot.botUsername,
+              rating: serialData?.rating || undefined,
+              language: serialData?.language || undefined,
+              subtitle: serialData?.subtitle !== null ? serialData?.subtitle : undefined,
+              totalEpisodes,
+              isEpisode: false
+            });
 
             const keyboard = new InlineKeyboard().url(
               '✨ Tomosha Qilish',

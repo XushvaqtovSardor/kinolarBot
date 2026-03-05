@@ -1,6 +1,5 @@
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["driverAdapters"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -108,6 +107,8 @@ model Movie {
   language         String?
   quality          String?
   description      String?
+  rating           String?
+  subtitle         Boolean?
   year             Int?
   imdb             Float?
   duration         Int?
@@ -150,6 +151,9 @@ model Serial {
   channelMessageId  Int?
   description       String?
   genre             String?
+  language          String?
+  rating            String?
+  subtitle          Boolean?
   totalEpisodes     Int            @default(0)
   hasCustomChannel  Boolean        @default(false)
   customChannelId   String?
@@ -330,17 +334,17 @@ model UserChannelStatus {
 }
 
 model ChannelJoinRequest {
-  id            Int                     @id @default(autoincrement())
-  userId        Int
-  channelId     Int
-  telegramId    String
-  username      String?
-  firstName     String?
-  lastName      String?
-  status        JoinRequestStatus       @default(PENDING)
-  requestedAt   DateTime                @default(now())
-  processedAt   DateTime?
-  processedBy   String?
+  id             Int               @id @default(autoincrement())
+  userId         Int
+  channelId      Int
+  telegramId     String
+  username       String?
+  firstName      String?
+  lastName       String?
+  status         JoinRequestStatus @default(PENDING)
+  requestedAt    DateTime          @default(now())
+  processedAt    DateTime?
+  processedBy    String?
   rejectedReason String?
 
   @@unique([userId, channelId])

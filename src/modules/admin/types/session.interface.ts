@@ -70,8 +70,13 @@ export interface MovieCreationData {
   title?: string;
   year?: number;
   genre?: string;
+  selectedGenres?: string[]; // For multi-select genre system
   imdb?: number;
   description?: string;
+  rating?: string; // Movie rating (e.g., 6.5, 8)
+  language?: string; // Movie language
+  subtitle?: boolean; // Has subtitle or not
+  descriptionInputMode?: boolean; // Manual description input flag
   fieldId?: number;
   thumbnailFileId?: string;
   videoFileId?: string;
@@ -86,8 +91,13 @@ export interface SerialCreationData {
   title?: string;
   year?: number;
   genre?: string;
+  selectedGenres?: string[]; // For multi-select genre system
   imdb?: number;
   description?: string;
+  rating?: string; // Serial rating (e.g., 6.5, 8)
+  language?: string; // Serial language
+  subtitle?: boolean; // Has subtitle or not
+  descriptionInputMode?: boolean; // Manual description input flag
   season?: number;
   episodeCount?: number;
   fieldId?: number;

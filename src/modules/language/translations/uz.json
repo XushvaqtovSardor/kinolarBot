@@ -6,34 +6,28 @@
   "next": "➡️ Keyingi",
   "done": "✅ Tayyor",
   "skip": "⏭ O'tkazib yuborish",
-  
   "welcome": "👋 Xush kelibsiz!",
   "welcomeMessage": "🎬 Kino botga xush kelibsiz!\n\nKino kodini yuboring yoki quyidagi tugmalardan foydalaning.",
   "searchMovie": "🔍 Kino qidirish",
   "changeLanguage": "🌐 Tilni o'zgartirish",
   "premiumSubscription": "⭐️ Premium obuna",
   "aboutBot": "ℹ️ Bot haqida",
-  
   "enterMovieCode": "🔢 Kino kodini kiriting:",
   "movieNotFound": "❌ Bunday kodli kino topilmadi",
   "watchMovie": "▶️ Tomosha qilish",
-  "shareMovie": "📤 Ulashish",
-  
+  "shareMovie": "♻️Ulashish",
   "mustSubscribe": "❗️ Botdan foydalanish uchun quyidagi kanallarga obuna bo'ling:",
   "checkSubscription": "✅ Tekshirish",
   "subscriptionVerified": "✅ Tabriklaymiz! Endi botdan foydalanishingiz mumkin.",
   "pleaseSubscribeAll": "👇 Barcha kanallarga a'zo bo'lib, tekshirish tugmasini bosing",
-  
   "premiumFeatures": "⭐️ Premium obuna imkoniyatlari:\n\n✅ Reklamasiz kinolar\n✅ Majburiy kanallarsiz\n✅ Yangi kinolar birinchi bo'lib\n\nNarxi: ",
   "monthlyPrice": "so'm/oy",
   "uploadReceipt": "📸 To'lov chekini yuklang:",
   "waitingApproval": "⏳ To'lovingiz admin tomonidan ko'rib chiqilmoqda...",
   "premiumActivated": "🎉 Premium obuna faollashtirildi!",
   "paymentRejected": "❌ To'lovingiz rad etildi",
-  
   "selectLanguage": "🌐 Tilni tanlang:",
   "languageChanged": "✅ Til muvaffaqiyatli o'zgartirildi",
-  
   "adminPanel": "👮 Admin Panel",
   "addField": "📁 Field qo'shish",
   "databaseChannel": "💾 Database kanal",
@@ -47,14 +41,12 @@
   "broadcast": "📣 Xabar yuborish",
   "blockUsers": "🚫 Userlarni bloklash",
   "guide": "📖 Yo'riqnoma",
-  
   "enterFieldName": "📝 Field nomini kiriting:",
   "enterChannelId": "🆔 Kanal ID sini kiriting (@channel yoki -100...):",
   "enterChannelLink": "🔗 Kanal linkini kiriting:",
   "fieldCreated": "✅ Field muvaffaqiyatli yaratildi!",
   "fieldDeleted": "✅ Field o'chirildi",
   "fieldList": "📁 Mavjud Fieldlar:",
-  
   "codeIsTaken": "❌ Bu kod band! Quyidagi kodlarni ishlatishingiz mumkin:",
   "availableCodes": "Bo'sh kodlar:",
   "enterMovieTitle": "🎬 Kino nomini kiriting:",
@@ -66,7 +58,6 @@
   "uploadMovieVideo": "🎥 Kino videosini yuklang:",
   "selectField": "📁 Fieldni tanlang:",
   "movieCreated": "✅ Kino muvaffaqiyatli yaratildi va kanallarga yuborildi!",
-  
   "createNewSerial": "🆕 Yangi serial yaratish",
   "addEpisodeToSerial": "➕ Mavjud serialga qism qo'shish",
   "useMainChannel": "📢 Asosiy kanal",
@@ -83,20 +74,17 @@
   "episodeUploaded": "✅ Qism yuklandi!",
   "continueUploading": "➕ Yana qism qo'shish",
   "finishUploading": "✅ Yakunlash",
-  
   "enterUsername": "👤 Username kiriting (@username):",
   "selectRole": "👮 Rolni tanlang:",
   "adminCreated": "✅ Admin qo'shildi",
   "canAddAdmin": "Yangi admin qo'sha oladi?",
   "canDeleteContent": "Kontent o'chira oladi?",
-  
   "totalUsers": "👥 Jami foydalanuvchilar:",
   "totalMovies": "🎬 Jami kinolar:",
   "totalSerials": "📺 Jami seriallar:",
   "topMovies": "🔥 TOP ko'rilgan kinolar:",
   "activeUsers": "📈 Active foydalanuvchilar:",
   "newUsers": "🆕 Yangi foydalanuvchilar:",
-  
   "selectBroadcastType": "📣 Xabar turini tanlang:",
   "advertisement": "📢 Reklama",
   "notification": "📬 Xabarnoma",
@@ -105,7 +93,6 @@
   "broadcastSent": "✅ Xabar yuborildi!",
   "sentTo": "Yuborildi:",
   "failedTo": "Xatolik:",
-  
   "pendingPayments": "⏳ Kutilayotgan to'lovlar:",
   "approvePayment": "✅ Tasdiqlash",
   "rejectPayment": "❌ Rad etish",
@@ -113,17 +100,14 @@
   "enterRejectionReason": "❓ Rad etish sababini kiriting:",
   "warning": "⚠️ Ogohlantirish",
   "fakeReceiptWarning": "Siz soxta chek yuklaganingiz uchun ogohlantirilasiz. 3 marta ogohlantirish olingandan keyin botdan foydalana olmaysiz.",
-  
   "enterUsernameToBlock": "👤 Bloklash uchun username kiriting:",
   "searchFromUsers": "🔍 Userlar ichidan qidirish",
   "userBlocked": "✅ User bloklandi",
   "userUnblocked": "✅ User blokdan chiqarildi",
-  
   "error": "❌ Xatolik yuz berdi",
   "accessDenied": "🚫 Ruxsat etilmagan",
   "invalidInput": "❌ Noto'g'ri ma'lumot",
   "operationFailed": "❌ Amal bajarilmadi",
-  
   "searchByCode": "🔢 Kod bo'yicha qidirish",
   "adminEnterMovieCode": "🔢 Kino kodini kiriting (Admin)",
   "alreadyPremium": "✅ Siz allaqachon premium foydalanuvchisiz!",

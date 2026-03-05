@@ -680,6 +680,79 @@ export class AdminHandler implements OnModuleInit {
       if (admin) await this.handleBroadcastType(ctx);
     });
 
+    // Genre selection callbacks
+    bot.callbackQuery(/^toggle_genre_(.+)$/, async (ctx) => {
+      const admin = await this.getAdmin(ctx);
+      if (admin) await this.handleGenreToggle(ctx);
+    });
+
+    bot.callbackQuery('manual_genre_input', async (ctx) => {
+      const admin = await this.getAdmin(ctx);
+      if (admin) await this.startManualGenreInput(ctx);
+    });
+
+    bot.callbackQuery('finish_genre_selection', async (ctx) => {
+      const admin = await this.getAdmin(ctx);
+      if (admin) await this.finishGenreSelection(ctx);
+    });
+
+    // Description metadata callbacks
+    bot.callbackQuery('desc_manual_input', async (ctx) => {
+      const admin = await this.getAdmin(ctx);
+      if (admin) await this.startDescriptionManualInput(ctx);
+    });
+
+    bot.callbackQuery('desc_next', async (ctx) => {
+      const admin = await this.getAdmin(ctx);
+      if (admin) await this.finishDescriptionStep(ctx);
+    });
+
+    bot.callbackQuery('desc_rating', async (ctx) => {
+      const admin = await this.getAdmin(ctx);
+      if (admin) await this.startRatingInput(ctx);
+    });
+
+    bot.callbackQuery('desc_language', async (ctx) => {
+      const admin = await this.getAdmin(ctx);
+      if (admin) await this.showLanguageOptions(ctx);
+    });
+
+    bot.callbackQuery(/^select_lang_(.+)$/, async (ctx) => {
+      const admin = await this.getAdmin(ctx);
+      if (admin) await this.handleLanguageSelection(ctx);
+    });
+
+    bot.callbackQuery('desc_subtitle', async (ctx) => {
+      const admin = await this.getAdmin(ctx);
+      if (admin) await this.showSubtitleOptions(ctx);
+    });
+
+    bot.callbackQuery(/^select_subtitle_(yes|no)$/, async (ctx) => {
+      const admin = await this.getAdmin(ctx);
+      if (admin) await this.handleSubtitleSelection(ctx);
+    });
+
+    bot.callbackQuery(/^remove_desc_(rating|language|subtitle)$/, async (ctx) => {
+      const admin = await this.getAdmin(ctx);
+      if (admin) await this.removeDescriptionMetadata(ctx);
+    });
+
+    bot.callbackQuery('subtitle_back', async (ctx) => {
+      const admin = await this.getAdmin(ctx);
+      if (admin) {
+        await ctx.answerCallbackQuery();
+        await this.showDescriptionPanel(ctx);
+      }
+    });
+
+    bot.callbackQuery('desc_language_back', async (ctx) => {
+      const admin = await this.getAdmin(ctx);
+      if (admin) {
+        await ctx.answerCallbackQuery();
+        await this.showDescriptionPanel(ctx);
+      }
+    });
+
     bot.on('message:photo', async (ctx, next) => {
       if (!ctx.from) {
         await next();
@@ -1018,6 +1091,59 @@ export class AdminHandler implements OnModuleInit {
     }
   }
 
+  private buildMovieCaption(data: {
+    title: string;
+    code: string | number;
+    episodeCount?: number;
+    genre?: string;
+    description?: string;
+    rating?: string;
+    language?: string;
+    subtitle?: boolean;
+    fieldLink: string;
+    botUsername: string;
+  }): string {
+    let caption = `╭────────────────────\n`;
+    caption += `├‣ Kino nomi : ${data.title}\n`;
+    caption += `├‣ Kino kodi: ${data.code}\n`;
+    caption += `├‣ Qism: ${data.episodeCount || 1}\n`;
+
+    if (data.genre) {
+      caption += `├‣ Janrlari: ${data.genre}\n`;
+    }
+
+    if (data.description) {
+      // Limit description to 200 characters
+      const shortDesc = data.description.length > 200
+        ? data.description.substring(0, 200) + '...'
+        : data.description;
+      caption += `├‣ Tavsif: ${shortDesc}\n`;
+    }
+
+    if (data.rating) {
+      caption += `├‣ ⭐ Rating: ${data.rating}\n`;
+    }
+
+    if (data.language) {
+      caption += `├‣ 🌐 Til: #${data.language.replace(/\s+/g, '')}\n`;
+    }
+
+    if (data.subtitle !== undefined) {
+      caption += `├‣ 📝 Subtitle: ${data.subtitle ? 'Ha✅' : 'Yo\'q'}\n`;
+    }
+
+    caption += `├‣ Kanal: ${data.fieldLink}\n`;
+    caption += `╰────────────────────\n\n`;
+    caption += `▶️ Kinoning to'liq qismini @${data.botUsername} dan tomosha qilishingiz mumkin!\n\n`;
+    caption += `<blockquote expandable>⚠️ ESLATMA:\n`;
+    caption += `Biz yuklayotgan kinolar turli saytlardan olinadi.\n`;
+    caption += `🎰 Ba'zi kinolarda kazino, qimor yoki "pulni ko'paytirib beramiz" degan reklama chiqishi mumkin.\n`;
+    caption += `🚫 Bunday reklamalarga aslo ishonmang! Ular firibgarlar va sizni aldaydi.\n`;
+    caption += `🔞 Ba'zi sahnalar 18+ bo'lishi mumkin – agar noqulay bo'lsa, ko'rishni to'xtating.</blockquote>`;
+
+    return caption;
+  }
+
   private async handleMovieVideo(ctx: BotContext) {
     if (!ctx.from || !ctx.message || !('video' in ctx.message)) return;
 
@@ -1056,21 +1182,19 @@ export class AdminHandler implements OnModuleInit {
           const botInfo = await ctx.api.getMe();
           const botUsername = botInfo.username || 'bot';
           const fieldLink = field.channelLink || 'https://t.me/' + field.channelId?.replace('@', '').replace('-100', '');
-          const dbCaption = `╭────────────────────
-├‣ Kino nomi : ${data.title}
-├‣ Kino kodi: ${data.code}
-├‣ Qism: ${data.episodeCount || 1}
-├‣ Janrlari: ${data.genre}
-├‣ Kanal: ${fieldLink}
-╰────────────────────
 
-▶️ Kinoning to'liq qismini @${botUsername} dan tomosha qilishingiz mumkin!
-
-<blockquote expandable>⚠️ ESLATMA:
-Biz yuklayotgan kinolar turli saytlardan olinadi.
-🎰 Ba'zi kinolarda kazino, qimor yoki "pulni ko'paytirib beramiz" degan reklama chiqishi mumkin.
-🚫 Bunday reklamalarga aslo ishonmang! Ular firibgarlar va sizni aldaydi.
-🔞 Ba'zi sahnalar 18+ bo'lishi mumkin – agar noqulay bo'lsa, ko'rishni to'xtating.</blockquote>`;
+          const dbCaption = this.buildMovieCaption({
+            title: data.title,
+            code: data.code,
+            episodeCount: data.episodeCount,
+            genre: data.genre,
+            description: data.description,
+            rating: data.rating,
+            language: data.language,
+            subtitle: data.subtitle,
+            fieldLink,
+            botUsername,
+          });
 
           const sentVideo = await ctx.api.sendVideo(
             dbChannel.channelId,
@@ -1104,21 +1228,18 @@ Biz yuklayotgan kinolar turli saytlardan olinadi.
       const botUsername = botInfo.username || 'bot';
       const fieldLink = field.channelLink || 'https://t.me/' + field.channelId?.replace('@', '').replace('-100', '');
 
-      const caption = `╭────────────────────
-├‣ Kino nomi : ${data.title}
-├‣ Kino kodi: ${data.code}
-├‣ Qism: ${data.episodeCount || 1}
-├‣ Janrlari: ${data.genre}
-├‣ Kanal: ${fieldLink}
-╰────────────────────
-
-▶️ Kinoning to'liq qismini @${botUsername} dan tomosha qilishingiz mumkin!
-
-<blockquote expandable>⚠️ ESLATMA:
-Biz yuklayotgan kinolar turli saytlardan olinadi.
-🎰 Ba'zi kinolarda kazino, qimor yoki "pulni ko'paytirib beramiz" degan reklama chiqishi mumkin.
-🚫 Bunday reklamalarga aslo ishonmang! Ular firibgarlar va sizni aldaydi.
-🔞 Ba'zi sahnalar 18+ bo'lishi mumkin – agar noqulay bo'lsa, ko'rishni to'xtating.</blockquote>`;
+      const caption = this.buildMovieCaption({
+        title: data.title,
+        code: data.code,
+        episodeCount: data.episodeCount,
+        genre: data.genre,
+        description: data.description,
+        rating: data.rating,
+        language: data.language,
+        subtitle: data.subtitle,
+        fieldLink,
+        botUsername,
+      });
 
       const keyboard = new InlineKeyboard().url(
         '✨ Tomosha Qilish',
@@ -1153,6 +1274,9 @@ Biz yuklayotgan kinolar turli saytlardan olinadi.
         title: data.title,
         genre: data.genre,
         description: data.description,
+        rating: data.rating,
+        language: data.language,
+        subtitle: data.subtitle,
         fieldId: field.id,
         posterFileId: data.posterFileId,
         videoFileId: video.file_id,
@@ -1319,27 +1443,99 @@ Biz yuklayotgan kinolar turli saytlardan olinadi.
       case MovieCreateStep.TITLE:
         this.sessionService.updateSessionData(ctx.from!.id, { title: text });
         this.sessionService.setStep(ctx.from!.id, MovieCreateStep.GENRE);
-        await ctx.reply(
-          '🎭 Janr kiriting:\nMasalan: Action, Drama',
-          AdminKeyboard.getCancelButton(),
-        );
+
+        // Initialize empty genre selection
+        this.sessionService.updateSessionData(ctx.from!.id, {
+          selectedGenres: [],
+        });
+
+        // Show genre selection UI
+        await this.showGenreSelection(ctx);
         break;
 
       case MovieCreateStep.GENRE:
-        this.sessionService.updateSessionData(ctx.from!.id, { genre: text });
-        this.sessionService.setStep(ctx.from!.id, MovieCreateStep.DESCRIPTION);
+        // Handle manual genre input
+        if (session.data?.manualGenreInput) {
+          const genres = this.parseManualGenreInput(text);
+          const genreString = this.formatGenresWithHashtags(genres);
 
-        const keyboard = new Keyboard()
-          .text('Next')
-          .row()
-          .text('❌ Bekor qilish');
-        await ctx.reply(
-          "📝 Tavsif kiriting:\n\n⏭ O'tkazib yuborish uchun 'Next' yozing",
-          { reply_markup: keyboard.resized() },
-        );
+          this.sessionService.updateSessionData(ctx.from!.id, {
+            genre: genreString,
+            manualGenreInput: undefined,
+            selectedGenres: undefined,
+          });
+
+          this.sessionService.setStep(ctx.from!.id, MovieCreateStep.DESCRIPTION);
+
+          const keyboard = new Keyboard()
+            .text('Next')
+            .row()
+            .text('❌ Bekor qilish');
+
+          await ctx.reply(
+            `✅ Janrlar saqlandi: ${genreString}\n\n` +
+            `📝 Tavsif kiriting:\n\n⏭ O'tkazib yuborish uchun 'Next' yozing`,
+            { reply_markup: keyboard.resized() },
+          );
+        } else {
+          // Fallback: old text-based genre input (shouldn't reach here normally)
+          this.sessionService.updateSessionData(ctx.from!.id, { genre: text });
+          this.sessionService.setStep(ctx.from!.id, MovieCreateStep.DESCRIPTION);
+
+          const keyboard = new Keyboard()
+            .text('Next')
+            .row()
+            .text('❌ Bekor qilish');
+
+          await ctx.reply(
+            `📝 Tavsif kiriting:\n\n⏭ O'tkazib yuborish uchun 'Next' yozing`,
+            { reply_markup: keyboard.resized() },
+          );
+        }
         break;
 
       case MovieCreateStep.DESCRIPTION:
+        // Handle different input modes
+        if (session.data?.descriptionInputMode) {
+          // Manual description text input
+          this.sessionService.updateSessionData(ctx.from!.id, {
+            description: text,
+            descriptionInputMode: undefined,
+          });
+          await ctx.reply('✅ Tavsif saqlandi!', AdminKeyboard.getCancelButton());
+          await this.showDescriptionPanel(ctx);
+          return;
+        } else if (session.data?.ratingInputMode) {
+          // Rating input
+          const rating = text.trim();
+          // Validate rating format (number with optional decimal)
+          if (!/^\d+(\.\d+)?$/.test(rating)) {
+            await ctx.reply(
+              "❌ Noto'g'ri format!\n\nFaqat raqam kiriting (masalan: 6.5, 8, 9.2)",
+              AdminKeyboard.getCancelButton(),
+            );
+            return;
+          }
+          this.sessionService.updateSessionData(ctx.from!.id, {
+            rating,
+            ratingInputMode: undefined,
+          });
+          await ctx.reply(`✅ Rating saqlandi: ${rating}`, AdminKeyboard.getCancelButton());
+          await this.showDescriptionPanel(ctx);
+          return;
+        } else if (session.data?.languageInputMode) {
+          // Language manual input
+          const language = text.trim();
+          this.sessionService.updateSessionData(ctx.from!.id, {
+            language,
+            languageInputMode: undefined,
+          });
+          await ctx.reply(`✅ Til saqlandi: ${language}`, AdminKeyboard.getCancelButton());
+          await this.showDescriptionPanel(ctx);
+          return;
+        }
+
+        // Old flow fallback (shouldn't normally reach here)
         if (text.toLowerCase() === 'next') {
           this.sessionService.updateSessionData(ctx.from!.id, {
             description: null,
@@ -1396,6 +1592,525 @@ Biz yuklayotgan kinolar turli saytlardan olinadi.
         break;
     }
   }
+
+  // ============ GENRE SELECTION METHODS ============
+
+  private getAvailableGenres(): string[] {
+    return [
+      'Action',
+      'Comedy',
+      'Drama',
+      'Horror',
+      'Thriller',
+      'Science Fiction',
+      'Fantasy',
+      'Romance',
+      'Animation',
+      'Documentary',
+    ];
+  }
+
+  private async showGenreSelection(ctx: BotContext) {
+    if (!ctx.from) return;
+
+    const session = this.sessionService.getSession(ctx.from.id);
+    if (!session) return;
+
+    const selectedGenres = session.data?.selectedGenres || [];
+    const availableGenres = this.getAvailableGenres();
+
+    const keyboard = new InlineKeyboard();
+
+    // First row: Manual input and Next buttons
+    keyboard
+      .text("✍️ Qo'lda kirish", 'manual_genre_input')
+      .text('➡️ Davom etish', 'finish_genre_selection')
+      .row();
+
+    // Available genres (not selected)
+    const unselectedGenres = availableGenres.filter(
+      (g) => !selectedGenres.includes(g),
+    );
+    unselectedGenres.forEach((genre, index) => {
+      keyboard.text(genre, `toggle_genre_${genre}`);
+      if (index % 2 === 1) keyboard.row(); // 2 buttons per row
+    });
+    if (unselectedGenres.length % 2 !== 0) keyboard.row();
+
+    // Selected genres with X button
+    if (selectedGenres.length > 0) {
+      selectedGenres.forEach((genre) => {
+        keyboard.text(`${genre} ❌`, `toggle_genre_${genre}`).row();
+      });
+    }
+
+    const message = `
+🎭 **Janr tanlang**
+
+${selectedGenres.length > 0 ? `✅ Tanlangan: ${selectedGenres.join(', ')}` : '⚠️ Hech qanday janr tanlanmagan'}
+
+💡 **Qanday ishlaydi:**
+• Janrni tanlash uchun tugmani bosing
+• Tanlanganlarni o'chirish uchun ❌ belgisini bosing
+• Bir nechta janr tanlashingiz mumkin
+• "Qo'lda kirish" - o'zingiz yozasiz
+• "Davom etish" - tugatsiz va davom eting
+    `.trim();
+
+    if (ctx.callbackQuery) {
+      await ctx.editMessageText(message, {
+        parse_mode: 'Markdown',
+        reply_markup: keyboard,
+      });
+    } else {
+      await ctx.reply(message, {
+        parse_mode: 'Markdown',
+        reply_markup: keyboard,
+      });
+    }
+  }
+
+  private async handleGenreToggle(ctx: BotContext) {
+    if (!ctx.from || !ctx.callbackQuery) return;
+
+    const match = ctx.callbackQuery.data!.match(/^toggle_genre_(.+)$/);
+    if (!match) return;
+
+    const genre = match[1];
+    const session = this.sessionService.getSession(ctx.from.id);
+    if (!session) return;
+
+    let selectedGenres = session.data?.selectedGenres || [];
+
+    if (selectedGenres.includes(genre)) {
+      // Remove genre
+      selectedGenres = selectedGenres.filter((g) => g !== genre);
+      await ctx.answerCallbackQuery({
+        text: `❌ ${genre} olib tashlandi`,
+      });
+    } else {
+      // Add genre
+      selectedGenres.push(genre);
+      await ctx.answerCallbackQuery({
+        text: `✅ ${genre} tanlandi`,
+      });
+    }
+
+    this.sessionService.updateSessionData(ctx.from.id, { selectedGenres });
+    await this.showGenreSelection(ctx);
+  }
+
+  private async startManualGenreInput(ctx: BotContext) {
+    if (!ctx.from) return;
+
+    await ctx.answerCallbackQuery();
+
+    const instructions = `
+✍️ **Qo'lda janr kiriting**
+
+📝 **Qoidalar:**
+1. Har bir so'z alohida janr sifatida qo'shiladi
+2. Qavs ichiga yozsangiz, bir janr bo'ladi
+3. Bo'sh joy bilan ajratib yozing
+
+📌 **Misollar:**
+• \`love magic creatures\` → #love #magic #creatures
+• \`(computer animated) fantasy\` → #computer-animated #fantasy
+• \`action (martial arts)\` → #action #martial-arts
+
+💬 Endi janrlarni yozing:
+    `.trim();
+
+    this.sessionService.updateSessionData(ctx.from.id, {
+      manualGenreInput: true,
+    });
+
+    await ctx.editMessageText(instructions, {
+      parse_mode: 'Markdown',
+    });
+  }
+
+  private formatGenresWithHashtags(genres: string[]): string {
+    return genres.map((genre) => `#${genre.replace(/\\s+/g, '')}`).join(' ');
+  }
+
+  private parseManualGenreInput(text: string): string[] {
+    const genres: string[] = [];
+    let currentPos = 0;
+
+    while (currentPos < text.length) {
+      // Skip whitespace
+      while (currentPos < text.length && text[currentPos] === ' ') {
+        currentPos++;
+      }
+
+      if (currentPos >= text.length) break;
+
+      // Check for parentheses
+      if (text[currentPos] === '(') {
+        const closePos = text.indexOf(')', currentPos);
+        if (closePos !== -1) {
+          const genreText = text.substring(currentPos + 1, closePos).trim();
+          if (genreText) {
+            // Replace spaces with hyphens for multi-word genres
+            genres.push(genreText.replace(/\\s+/g, '-'));
+          }
+          currentPos = closePos + 1;
+        } else {
+          // No closing parenthesis, treat as regular word
+          const spacePos = text.indexOf(' ', currentPos);
+          const word =
+            spacePos === -1
+              ? text.substring(currentPos)
+              : text.substring(currentPos, spacePos);
+          if (word && word !== '(') {
+            genres.push(word.replace(/[()]/g, ''));
+          }
+          currentPos = spacePos === -1 ? text.length : spacePos + 1;
+        }
+      } else {
+        // Regular word
+        const spacePos = text.indexOf(' ', currentPos);
+        const word =
+          spacePos === -1
+            ? text.substring(currentPos)
+            : text.substring(currentPos, spacePos);
+        if (word) {
+          genres.push(word);
+        }
+        currentPos = spacePos === -1 ? text.length : spacePos + 1;
+      }
+    }
+
+    return genres;
+  }
+
+  private async finishGenreSelection(ctx: BotContext) {
+    if (!ctx.from) return;
+
+    const session = this.sessionService.getSession(ctx.from.id);
+    if (!session) return;
+
+    const selectedGenres = session.data?.selectedGenres || [];
+
+    if (selectedGenres.length === 0) {
+      await ctx.answerCallbackQuery({
+        text: "⚠️ Kamida bitta janr tanlang yoki 'Qo'lda kirish'dan foydalaning!",
+        show_alert: true,
+      });
+      return;
+    }
+
+    await ctx.answerCallbackQuery();
+
+    // Format genres with hashtags
+    const genreString = this.formatGenresWithHashtags(selectedGenres);
+
+    this.sessionService.updateSessionData(ctx.from.id, {
+      genre: genreString,
+      selectedGenres: undefined, // Clear the selection
+      manualGenreInput: undefined,
+    });
+
+    // Move to next step based on state
+    if (session.state === AdminState.CREATING_MOVIE) {
+      this.sessionService.setStep(ctx.from.id, MovieCreateStep.DESCRIPTION);
+      await ctx.editMessageText(`✅ Janrlar tanlandi: ${genreString}`);
+      await this.showDescriptionPanel(ctx);
+    } else if (session.state === AdminState.CREATING_SERIAL) {
+      this.sessionService.setStep(ctx.from.id, SerialCreateStep.DESCRIPTION);
+      await ctx.editMessageText(`✅ Janrlar tanlandi: ${genreString}`);
+      await this.showDescriptionPanel(ctx);
+    }
+  }
+
+  // ============ DESCRIPTION METADATA METHODS ============
+
+  private async showDescriptionPanel(ctx: BotContext) {
+    if (!ctx.from) return;
+
+    const session = this.sessionService.getSession(ctx.from.id);
+    if (!session) return;
+
+    const { description, rating, language, subtitle } = session.data || {};
+
+    const keyboard = new InlineKeyboard();
+
+    // First row: Manual input and Next
+    keyboard
+      .text("✍️ Qo'lda kiritish", 'desc_manual_input')
+      .text('➡️ Next', 'desc_next')
+      .row();
+
+    // Second row: Available options (only show if not selected)
+    if (!rating) keyboard.text('⭐ Rating', 'desc_rating');
+    if (!language) keyboard.text('🌐 Til', 'desc_language');
+    if (subtitle === undefined) keyboard.text('📝 Subtitle', 'desc_subtitle');
+
+    if (!rating || !language || subtitle === undefined) {
+      keyboard.row();
+    }
+
+    // Show selected items with remove buttons
+    if (rating) {
+      keyboard.text(`⭐ Rating: ${rating} ❌`, 'remove_desc_rating').row();
+    }
+    if (language) {
+      keyboard.text(`🌐 Til: ${language} ❌`, 'remove_desc_language').row();
+    }
+    if (subtitle !== undefined) {
+      const subtitleText = subtitle ? 'Ha✅' : "Yo'q";
+      keyboard.text(`📝 Subtitle: ${subtitleText} ❌`, 'remove_desc_subtitle').row();
+    }
+
+    let message = `📝 **Tavsif va qo'shimcha ma'lumotlar**\n\n`;
+
+    if (description) {
+      message += `📄 Tavsif: ${description.substring(0, 100)}${description.length > 100 ? '...' : ''}\n\n`;
+    }
+
+    message += `💡 **Tanlangan ma'lumotlar:**\n`;
+    if (rating) message += `⭐ Rating: ${rating}\n`;
+    if (language) message += `🌐 Til: ${language}\n`;
+    if (subtitle !== undefined) message += `📝 Subtitle: ${subtitle ? 'Ha✅' : "Yo'q"}\n`;
+    if (!rating && !language && subtitle === undefined && !description) {
+      message += `_Hech narsa tanlanmagan_\n`;
+    }
+
+    message += `\n📌 **Amallar:**\n`;
+    message += `• Qo'lda kiritish - tavsif matnini yozing\n`;
+    message += `• Rating - kinoning reytingini kiriting\n`;
+    message += `• Til - kino tilini tanlang\n`;
+    message += `• Subtitle - subtitr mavjudligini belgilang\n`;
+    message += `• Next - keyingi qadamga o'ting`;
+
+    if (ctx.callbackQuery) {
+      try {
+        await ctx.editMessageText(message, {
+          parse_mode: 'Markdown',
+          reply_markup: keyboard,
+        });
+      } catch (error) {
+        await ctx.reply(message, {
+          parse_mode: 'Markdown',
+          reply_markup: keyboard,
+        });
+      }
+    } else {
+      await ctx.reply(message, {
+        parse_mode: 'Markdown',
+        reply_markup: keyboard,
+      });
+    }
+  }
+
+  private async startDescriptionManualInput(ctx: BotContext) {
+    if (!ctx.from) return;
+
+    await ctx.answerCallbackQuery();
+
+    this.sessionService.updateSessionData(ctx.from.id, {
+      descriptionInputMode: true,
+    });
+
+    await ctx.editMessageText(
+      `✍️ **Tavsif kiriting:**\n\n` +
+      `📝 Kino haqida to'liq ma'lumot yozing.\n` +
+      `Tavsifni yozganingizdan keyin avtomatik qabul qilinadi.`,
+      { parse_mode: 'Markdown' },
+    );
+  }
+
+  private async startRatingInput(ctx: BotContext) {
+    if (!ctx.from) return;
+
+    await ctx.answerCallbackQuery();
+
+    this.sessionService.updateSessionData(ctx.from.id, {
+      ratingInputMode: true,
+    });
+
+    await ctx.editMessageText(
+      `⭐ **Rating kiriting:**\n\n` +
+      `📊 Kino reytingini kiriting (masalan: 6.5, 8, 9.2)\n\n` +
+      `💡 Faqat raqam va nuqta ishlatiladi.`,
+      { parse_mode: 'Markdown' },
+    );
+  }
+
+  private async showLanguageOptions(ctx: BotContext) {
+    if (!ctx.from) return;
+
+    await ctx.answerCallbackQuery();
+
+    const keyboard = new InlineKeyboard()
+      .text("✍️ Qo'lda kiritish", 'select_lang_manual')
+      .row()
+      .text('🇺🇿 O\'zbek', 'select_lang_uzbek')
+      .text('🇷🇺 Rus', 'select_lang_rus')
+      .row()
+      .text('🇬🇧 Ingliz', 'select_lang_ingliz')
+      .row()
+      .text('🔙 Orqaga', 'desc_language_back');
+
+    await ctx.editMessageText(
+      `🌐 **Til tanlang:**\n\n` +
+      `Kino qaysi tilda ekanligini belgilang.`,
+      {
+        parse_mode: 'Markdown',
+        reply_markup: keyboard,
+      },
+    );
+  }
+
+  private async handleLanguageSelection(ctx: BotContext) {
+    if (!ctx.from || !ctx.callbackQuery) return;
+
+    const match = ctx.callbackQuery.data!.match(/^select_lang_(.+)$/);
+    if (!match) return;
+
+    const langKey = match[1];
+
+    if (langKey === 'manual') {
+      await ctx.answerCallbackQuery();
+      this.sessionService.updateSessionData(ctx.from.id, {
+        languageInputMode: true,
+      });
+
+      await ctx.editMessageText(
+        `🌐 **Til nomini kiriting:**\n\n` +
+        `📝 Kino tilini yozing (masalan: Koreys, Turk, va h.k.)`,
+        { parse_mode: 'Markdown' },
+      );
+      return;
+    }
+
+    if (langKey === 'back') {
+      await ctx.answerCallbackQuery();
+      await this.showDescriptionPanel(ctx);
+      return;
+    }
+
+    const languageMap: { [key: string]: string } = {
+      uzbek: "O'zbek",
+      rus: 'Rus',
+      ingliz: 'Ingliz',
+    };
+
+    const language = languageMap[langKey] || langKey;
+
+    this.sessionService.updateSessionData(ctx.from.id, {
+      language,
+    });
+
+    await ctx.answerCallbackQuery({
+      text: `✅ Til tanlandi: ${language}`,
+    });
+
+    await this.showDescriptionPanel(ctx);
+  }
+
+  private async showSubtitleOptions(ctx: BotContext) {
+    if (!ctx.from) return;
+
+    await ctx.answerCallbackQuery();
+
+    const keyboard = new InlineKeyboard()
+      .text('✅ Ha', 'select_subtitle_yes')
+      .text('❌ Yo\'q', 'select_subtitle_no')
+      .row()
+      .text('🔙 Orqaga', 'subtitle_back');
+
+    await ctx.editMessageText(
+      `📝 **Subtitle mavjudmi?**\n\n` +
+      `Kinoda subtitr borligini belgilang.`,
+      {
+        parse_mode: 'Markdown',
+        reply_markup: keyboard,
+      },
+    );
+  }
+
+  private async handleSubtitleSelection(ctx: BotContext) {
+    if (!ctx.from || !ctx.callbackQuery) return;
+
+    const match = ctx.callbackQuery.data!.match(/^select_subtitle_(yes|no)$/);
+    if (!match) return;
+
+    const hasSubtitle = match[1] === 'yes';
+
+    this.sessionService.updateSessionData(ctx.from.id, {
+      subtitle: hasSubtitle,
+    });
+
+    await ctx.answerCallbackQuery({
+      text: hasSubtitle ? '✅ Subtitle: Ha' : '❌ Subtitle: Yo\'q',
+    });
+
+    await this.showDescriptionPanel(ctx);
+  }
+
+  private async removeDescriptionMetadata(ctx: BotContext) {
+    if (!ctx.from || !ctx.callbackQuery) return;
+
+    const match = ctx.callbackQuery.data!.match(/^remove_desc_(rating|language|subtitle)$/);
+    if (!match) return;
+
+    const field = match[1];
+    const updateData: any = {};
+
+    if (field === 'rating') {
+      updateData.rating = undefined;
+      await ctx.answerCallbackQuery({ text: '🗑 Rating o\'chirildi' });
+    } else if (field === 'language') {
+      updateData.language = undefined;
+      await ctx.answerCallbackQuery({ text: '🗑 Til o\'chirildi' });
+    } else if (field === 'subtitle') {
+      updateData.subtitle = undefined;
+      await ctx.answerCallbackQuery({ text: '🗑 Subtitle o\'chirildi' });
+    }
+
+    this.sessionService.updateSessionData(ctx.from.id, updateData);
+    await this.showDescriptionPanel(ctx);
+  }
+
+  private async finishDescriptionStep(ctx: BotContext) {
+    if (!ctx.from) return;
+
+    await ctx.answerCallbackQuery({ text: '✅ Davom etamiz' });
+
+    const session = this.sessionService.getSession(ctx.from.id);
+    if (!session) return;
+
+    // Move to FIELD selection step
+    if (session.state === AdminState.CREATING_MOVIE) {
+      this.sessionService.setStep(ctx.from.id, MovieCreateStep.FIELD);
+    } else if (session.state === AdminState.CREATING_SERIAL) {
+      this.sessionService.setStep(ctx.from.id, SerialCreateStep.FIELD);
+    }
+
+    const allFields = await this.fieldService.findAll();
+    if (allFields.length === 0) {
+      await ctx.editMessageText('❌ Hech qanday field topilmadi. Avval field yarating.');
+      this.sessionService.clearSession(ctx.from.id);
+      return;
+    }
+
+    let message = '📁 Qaysi fieldni tanlaysiz?\n\n';
+    allFields.forEach((field, index) => {
+      message += `${index + 1}. ${field.name}\n`;
+    });
+    message += '\nRaqamini kiriting (masalan: 1)';
+
+    this.sessionService.updateSessionData(ctx.from.id, {
+      fields: allFields,
+    });
+
+    await ctx.editMessageText(message);
+    await ctx.reply(message, AdminKeyboard.getCancelButton());
+  }
+
+  // ============ END DESCRIPTION METADATA METHODS ============
 
   private async startSerialCreation(ctx: BotContext) {
     const admin = await this.getAdmin(ctx);
@@ -4072,28 +4787,101 @@ Qaysi rol berasiz?
 
         this.sessionService.updateSessionData(ctx.from.id, { title: text });
         this.sessionService.setStep(ctx.from.id, SerialCreateStep.GENRE);
-        await ctx.reply(
-          '🎭 Janr kiriting:\nMasalan: Drama, Action',
-          AdminKeyboard.getCancelButton(),
-        );
+
+        // Initialize empty genre selection
+        this.sessionService.updateSessionData(ctx.from.id, {
+          selectedGenres: [],
+        });
+
+        // Show genre selection UI
+        await this.showGenreSelection(ctx);
         break;
 
       case SerialCreateStep.GENRE:
-        this.sessionService.updateSessionData(ctx.from.id, { genre: text });
-        this.sessionService.setStep(ctx.from.id, SerialCreateStep.DESCRIPTION);
+        // Handle manual genre input
+        if (session.data?.manualGenreInput) {
+          const genres = this.parseManualGenreInput(text);
+          const genreString = this.formatGenresWithHashtags(genres);
 
-        const keyboard = new Keyboard()
-          .text('Next')
-          .row()
-          .text('❌ Bekor qilish')
-          .resized();
-        await ctx.reply(
-          "📝 Tavsif kiriting:\n\n⏭ O'tkazib yuborish uchun 'Next' yozing",
-          { reply_markup: keyboard },
-        );
+          this.sessionService.updateSessionData(ctx.from.id, {
+            genre: genreString,
+            manualGenreInput: undefined,
+            selectedGenres: undefined,
+          });
+
+          this.sessionService.setStep(ctx.from.id, SerialCreateStep.DESCRIPTION);
+
+          const serialKeyboard = new Keyboard()
+            .text('Next')
+            .row()
+            .text('❌ Bekor qilish')
+            .resized();
+
+          await ctx.reply(
+            `✅ Janrlar saqlandi: ${genreString}\n\n` +
+            `📝 Tavsif kiriting:\n\n⏭ O'tkazib yuborish uchun 'Next' yozing`,
+            { reply_markup: serialKeyboard },
+          );
+        } else {
+          // Fallback: old text-based genre input
+          this.sessionService.updateSessionData(ctx.from.id, { genre: text });
+          this.sessionService.setStep(ctx.from.id, SerialCreateStep.DESCRIPTION);
+
+          const serialKeyboard = new Keyboard()
+            .text('Next')
+            .row()
+            .text('❌ Bekor qilish')
+            .resized();
+
+          await ctx.reply(
+            `📝 Tavsif kiriting:\n\n⏭ O'tkazib yuborish uchun 'Next' yozing`,
+            { reply_markup: serialKeyboard },
+          );
+        }
         break;
 
       case SerialCreateStep.DESCRIPTION:
+        // Handle different input modes
+        if (session.data?.descriptionInputMode) {
+          // Manual description text input
+          this.sessionService.updateSessionData(ctx.from.id, {
+            description: text,
+            descriptionInputMode: undefined,
+          });
+          await ctx.reply('✅ Tavsif saqlandi!', AdminKeyboard.getCancelButton());
+          await this.showDescriptionPanel(ctx);
+          return;
+        } else if (session.data?.ratingInputMode) {
+          // Rating input
+          const rating = text.trim();
+          // Validate rating format (number with optional decimal)
+          if (!/^\d+(\.\d+)?$/.test(rating)) {
+            await ctx.reply(
+              "❌ Noto'g'ri format!\n\nFaqat raqam kiriting (masalan: 6.5, 8, 9.2)",
+              AdminKeyboard.getCancelButton(),
+            );
+            return;
+          }
+          this.sessionService.updateSessionData(ctx.from.id, {
+            rating,
+            ratingInputMode: undefined,
+          });
+          await ctx.reply(`✅ Rating saqlandi: ${rating}`, AdminKeyboard.getCancelButton());
+          await this.showDescriptionPanel(ctx);
+          return;
+        } else if (session.data?.languageInputMode) {
+          // Language manual input
+          const language = text.trim();
+          this.sessionService.updateSessionData(ctx.from.id, {
+            language,
+            languageInputMode: undefined,
+          });
+          await ctx.reply(`✅ Til saqlandi: ${language}`, AdminKeyboard.getCancelButton());
+          await this.showDescriptionPanel(ctx);
+          return;
+        }
+
+        // Old flow fallback (shouldn't normally reach here)
         if (text.toLowerCase() === 'next') {
           this.sessionService.updateSessionData(ctx.from.id, {
             description: null,
@@ -5023,7 +5811,7 @@ Qaysi rol berasiz?
 
         // Send in chunks of 20 to avoid message length limit
         if (num % 20 === 0 && num < users.length) {
-          console.log(`Sending chunk at ${num}...`);
+
           ctx.reply(message).catch(e => {
             console.log(`Failed to send chunk: ${e.message}`);
           });
@@ -5037,10 +5825,6 @@ Qaysi rol berasiz?
         await ctx.reply(message);
       }
 
-      console.log('STEP 3 SUCCESS: All users sent');
-      this.logger.log('STEP 3 SUCCESS: All users sent');
-      console.log('===== showAllUsers COMPLETED SUCCESSFULLY =====');
-      this.logger.log('===== showAllUsers COMPLETED SUCCESSFULLY =====');
 
     } catch (err) {
       // Maximum error logging with all possible methods

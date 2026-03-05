@@ -8,6 +8,8 @@ export interface MovieData {
   channelMessageId?: number;
   genre?: string;
   language?: string;
+  rating?: string;
+  subtitle?: boolean;
   quality?: string;
   description?: string;
   year?: number;
@@ -23,6 +25,9 @@ export interface SerialData {
   posterFileId: string;
   description?: string;
   genre?: string;
+  language?: string;
+  rating?: string;
+  subtitle?: boolean;
   season?: number;
   episodeCount?: number;
   totalEpisodes?: number;
