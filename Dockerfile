@@ -18,9 +18,9 @@ COPY . .
 # Generate Prisma client
 RUN npx prisma generate
 
-# Build is done in docker-compose command to ensure latest code
-# RUN pnpm run build (REMOVED - will be done at runtime)
+# Build the application
+RUN pnpm run build
 
 EXPOSE 3000
 
-CMD sh -c "npx prisma migrate deploy && node dist/src/main.js"
+CMD sh -c "npx prisma migrate deploy && node dist/main.js"
