@@ -74,7 +74,7 @@ export class SerialManagementService {
     }
 
     if (data.rating) {
-      caption += `├‣ ⭐ Rating: ${data.rating}\n`;
+      caption += `├‣ ⭐ Rating: ${data.rating}/10\n`;
     }
 
     if (data.language) {

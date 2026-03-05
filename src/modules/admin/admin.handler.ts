@@ -1121,7 +1121,7 @@ export class AdminHandler implements OnModuleInit {
     }
 
     if (data.rating) {
-      caption += `├‣ ⭐ Rating: ${data.rating}\n`;
+      caption += `├‣ ⭐ Rating: ${data.rating}/10\n`;
     }
 
     if (data.language) {
