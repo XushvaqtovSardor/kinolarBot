@@ -2711,11 +2711,13 @@ Biz yuklayotgan kinolar turli saytlardan olinadi.
         reply_markup: keyboard,
       });
     } catch (error) {
-      this.logger.error('Error showing admins list:', error);
+      this.logger.error('❌ Error showing admins list');
+      this.logger.error(`Error details: ${error.message}`);
+      this.logger.error('Stack:', error.stack);
       await ctx.reply(
         "❌ Adminlar royxatini ko'rsatishda xatolik yuz berdi.\n\n" +
         "Iltimos, qayta urinib ko'ring.",
-      );
+      ).catch(() => { });
     }
   }
 
@@ -2857,10 +2859,12 @@ Biz yuklayotgan kinolar turli saytlardan olinadi.
     }
 
     const role = match[1] as 'ADMIN' | 'MANAGER' | 'SUPERADMIN';
-    const telegramId = match[2];
+    const telegramId = match[2]; // String from callback data
 
     const session = this.sessionService.getSession(ctx.from.id);
-    const username = session?.data?.username || String(telegramId);
+    const username = session?.data?.username || telegramId;
+
+    this.logger.log(`📝 Creating admin: ID=${telegramId}, Username=${username}, Role=${role}`);
 
     try {
       // SUPERADMIN uchun to'liq huquqlar
@@ -2868,13 +2872,15 @@ Biz yuklayotgan kinolar turli saytlardan olinadi.
       const canDeleteContent = role === 'SUPERADMIN' || role === 'MANAGER';
 
       await this.adminService.createAdmin({
-        telegramId,
+        telegramId: String(telegramId), // Ensure it's a string
         username,
         role,
         canAddAdmin,
         canDeleteContent,
         createdBy: ctx.from.id.toString(),
       });
+
+      this.logger.log(`✅ Admin created successfully: ${telegramId} (@${username})`);
 
       this.sessionService.clearSession(ctx.from.id);
 
@@ -2898,13 +2904,21 @@ Biz yuklayotgan kinolar turli saytlardan olinadi.
         this.showAdminsList(ctx);
       }, 2000);
     } catch (error) {
+      this.logger.error(`❌ Failed to create admin: ${telegramId}`);
+      this.logger.error(`Error details: ${error.message}`);
+      this.logger.error(`Error stack:`, error.stack);
+
       await ctx.answerCallbackQuery({
         text: "❌ Xatolik yuz berdi. Iltimos, qayta urinib ko'ring.",
-      });
+      }).catch(() => { });
 
-      await ctx.reply(`❌ Admin qo'shishda xatolik:\n${error.message}`, {
+      const errorMessage = error.code === 'P2002'
+        ? `❌ Bu admin allaqachon mavjud!\n\nTelegram ID: \`${telegramId}\``
+        : `❌ Admin qo'shishda xatolik:\n\n${error.message}`;
+
+      await ctx.reply(errorMessage, {
         parse_mode: 'Markdown',
-      });
+      }).catch(() => { });
 
       this.sessionService.clearSession(ctx.from.id);
     }
@@ -3691,7 +3705,7 @@ Qaysi guruhga xabar yubormoqchisiz?
     const admin = await this.getAdmin(ctx);
     if (!admin || !ctx.from) return;
 
-    let telegramId: string | number = text.trim();
+    let telegramId: string = text.trim();
 
     // Validatsiya: faqat username yoki raqam qabul qilamiz
     if (!telegramId || telegramId.length > 100 || /[\s\n\r;']/.test(telegramId)) {
@@ -3707,23 +3721,24 @@ Qaysi guruhga xabar yubormoqchisiz?
       telegramId = telegramId.substring(1);
     }
 
-    // Agar raqam bo'lsa, number ga o'tkazamiz
-    if (/^\d+$/.test(String(telegramId))) {
-      telegramId = parseInt(String(telegramId), 10);
-    }
+    // telegramId ni string sifatida saqlaymiz (database String kutadi)
 
     // Foydalanuvchi ma'lumotini olishga harakat qilamiz
     let username: string | undefined;
     let userFound = false;
 
     try {
-      const user = await ctx.api.getChat(telegramId);
+      // Telegram API username yoki numeric ID qabul qiladi
+      const chatId = /^\d+$/.test(telegramId) ? parseInt(telegramId, 10) : telegramId;
+      const user = await ctx.api.getChat(chatId);
       username = 'username' in user ? user.username : undefined;
       userFound = true;
+      this.logger.log(`✅ User info fetched successfully for ${telegramId}${username ? ' (@' + username + ')' : ''}`);
     } catch (error) {
       // Agar foydalanuvchi topilmasa, ID/username bilan davom etamiz
-      this.logger.warn(`Cannot get user info for ${telegramId}, proceeding anyway: ${error.message}`);
-      username = typeof telegramId === 'string' ? telegramId : undefined;
+      this.logger.warn(`⚠️ Cannot get user info for ${telegramId}: ${error.message}`);
+      this.logger.warn('Proceeding with admin creation anyway...');
+      username = telegramId;
     }
 
     // Session ma'lumotlarini saqlaymiz
