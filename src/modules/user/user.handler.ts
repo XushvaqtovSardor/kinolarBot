@@ -2145,18 +2145,34 @@ Biz yuklayotgan kinolar turli saytlardan olinadi.
         try {
           const videoData = JSON.parse(episode.videoMessageId);
           if (Array.isArray(videoData) && videoData.length > 0) {
-            await ctx.api.copyMessage(
+            // Forward message to preserve streaming, then delete forward label by editing caption
+            const forwardedMsg = await ctx.api.forwardMessage(
               ctx.from.id,
               videoData[0].channelId,
               videoData[0].messageId,
-              {
-                protect_content: true,
-                reply_markup: shareKeyboard,
-              },
+              { protect_content: true },
             );
+
+            // Edit the caption and add custom keyboard
+            if (forwardedMsg && 'video' in forwardedMsg) {
+              try {
+                await ctx.api.editMessageCaption(
+                  ctx.from.id,
+                  forwardedMsg.message_id,
+                  {
+                    caption: videoCaption,
+                    parse_mode: 'HTML',
+                    reply_markup: shareKeyboard,
+                  },
+                );
+              } catch (editError) {
+                // If edit fails, caption stays as original
+                this.logger.warn(`[UserHandler.handleEpisodeCallback] Failed to edit caption - Serial: ${serialId}, Episode: ${episodeNumber}`);
+              }
+            }
           }
         } catch (error) {
-          this.logger.error(`[UserHandler.handleEpisodeCallback] Failed to copy video - Serial: ${serialId}, Episode: ${episodeNumber}, User: ${ctx.from.id}, Error: ${error.message}`, error.stack);
+          this.logger.error(`[UserHandler.handleEpisodeCallback] Failed to send video - Serial: ${serialId}, Episode: ${episodeNumber}, User: ${ctx.from.id}, Error: ${error.message}`, error.stack);
           await ctx.reply('❌ Video yuklashda xatolik.');
         }
       }
@@ -2241,19 +2257,33 @@ Biz yuklayotgan kinolar turli saytlardan olinadi.
           try {
             const videoData = JSON.parse(movie.videoMessageId);
             if (Array.isArray(videoData) && videoData.length > 0) {
-              await ctx.api.copyMessage(
+              // Forward message to preserve streaming
+              const forwardedMsg = await ctx.api.forwardMessage(
                 ctx.from.id,
                 videoData[0].channelId,
                 videoData[0].messageId,
-                {
-                  protect_content: true,
-                  reply_markup: shareKeyboard,
-                  caption: videoCaption,
-                },
+                { protect_content: true },
               );
+
+              // Edit the caption and add custom keyboard
+              if (forwardedMsg && 'video' in forwardedMsg) {
+                try {
+                  await ctx.api.editMessageCaption(
+                    ctx.from.id,
+                    forwardedMsg.message_id,
+                    {
+                      caption: videoCaption,
+                      parse_mode: 'HTML',
+                      reply_markup: shareKeyboard,
+                    },
+                  );
+                } catch (editError) {
+                  this.logger.warn(`[UserHandler.handleMovieEpisodeCallback] Failed to edit caption - Movie: ${movieId}, Episode: 1`);
+                }
+              }
             }
           } catch (error) {
-            this.logger.error(`[UserHandler.handleMovieEpisodeCallback] Failed to copy movie video - Movie: ${movieId}, Episode: ${episodeNumber}, User: ${ctx.from.id}, Error: ${error.message}`, error.stack);
+            this.logger.error(`[UserHandler.handleMovieEpisodeCallback] Failed to send movie video - Movie: ${movieId}, Episode: ${episodeNumber}, User: ${ctx.from.id}, Error: ${error.message}`, error.stack);
             await ctx.reply('❌ Video yuklashda xatolik.');
           }
         }
@@ -2279,20 +2309,31 @@ Biz yuklayotgan kinolar turli saytlardan olinadi.
           try {
             const videoData = JSON.parse(episode.videoMessageId);
             if (Array.isArray(videoData) && videoData.length > 0) {
-              await ctx.api.copyMessage(
+              const forwardedMsg = await ctx.api.forwardMessage(
                 ctx.from.id,
                 videoData[0].channelId,
                 videoData[0].messageId,
-                {
-                  protect_content: true,
-                  reply_markup: shareKeyboard,
-                  caption: videoCaption,
-                  parse_mode: 'HTML',
-                },
+                { protect_content: true },
               );
+              if (forwardedMsg && 'video' in forwardedMsg) {
+                try {
+                  await ctx.api.editMessageCaption(
+                    ctx.from.id,
+                    forwardedMsg.message_id,
+                    {
+                      caption: videoCaption,
+                      parse_mode: 'HTML',
+                      reply_markup: shareKeyboard,
+                    },
+                  );
+                } catch (editError) {
+                  // If edit fails, caption stays as original
+                  this.logger.warn(`[UserHandler.handleMovieEpisodeCallback] Failed to edit caption - Movie: ${movieId}, Episode: ${episodeNumber}`);
+                }
+              }
             }
           } catch (error) {
-            this.logger.error(`[UserHandler.handleMovieEpisodeCallback] Failed to copy movie episode video - Movie: ${movieId}, Episode: ${episodeNumber}, User: ${ctx.from.id}, Error: ${error.message}`, error.stack);
+            this.logger.error(`[UserHandler.handleMovieEpisodeCallback] Failed to send movie episode video - Movie: ${movieId}, Episode: ${episodeNumber}, User: ${ctx.from.id}, Error: ${error.message}`, error.stack);
             await ctx.reply('❌ Video yuklashda xatolik.');
           }
         }
