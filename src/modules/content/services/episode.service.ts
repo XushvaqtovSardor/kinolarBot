@@ -4,7 +4,7 @@ import { EpisodeData } from '../interfaces/content-data.interface';
 
 @Injectable()
 export class EpisodeService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   async create(data: EpisodeData) {
     return this.prisma.episode.create({
@@ -99,6 +99,7 @@ export class EpisodeService {
 
     return bot.telegram.sendVideo(channelId, videoFileId, {
       caption,
+      supports_streaming: true,
     });
   }
 }

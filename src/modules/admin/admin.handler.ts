@@ -1202,6 +1202,7 @@ export class AdminHandler implements OnModuleInit {
             {
               caption: dbCaption,
               parse_mode: 'HTML',
+              supports_streaming: true,
             },
           );
           videoMessages.push({

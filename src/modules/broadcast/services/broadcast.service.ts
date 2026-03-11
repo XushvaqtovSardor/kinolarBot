@@ -127,6 +127,7 @@ export class BroadcastService {
       await bot.api.sendVideo(telegramId, broadcast.videoFileId, {
         caption: broadcast.messageText || broadcast.message,
         ...options,
+        supports_streaming: true,
       });
     } else {
       await bot.api.sendMessage(telegramId, broadcast.messageText || broadcast.message, options);

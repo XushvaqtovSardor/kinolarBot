@@ -372,7 +372,7 @@ export class SerialManagementService {
             const sentVideo = await ctx.api.sendVideo(
               dbChannel.channelId,
               ep.videoFileId,
-              { caption, parse_mode: "HTML" }, // parse_mode qo'shish tavsiya etiladi
+              { caption, parse_mode: "HTML", supports_streaming: true }, // parse_mode qo'shish tavsiya etiladi
             );
             // ... (davomi)
             videoMessages.push({
@@ -595,8 +595,6 @@ export class SerialManagementService {
       nextEpisodeNumber: nextEpisodeNumber + 1,
       episodesUploaded: newEpisodesUploaded,
     });
-
-    // Show options after each video upload
     const keyboard = new Keyboard()
       .text(`➕ ${nextEpisodeNumber + 1}-qism yuklash`)
       .row()
@@ -680,7 +678,7 @@ Biz yuklayotgan kinolar turli saytlardan olinadi.
               const sentVideo = await ctx.api.sendVideo(
                 dbChannel.channelId,
                 ep.videoFileId,
-                { caption, parse_mode: 'HTML' },
+                { caption, parse_mode: 'HTML', supports_streaming: true },
               );
               videoMessages.push({
                 channelId: dbChannel.channelId,
@@ -783,7 +781,7 @@ Biz yuklayotgan kinolar turli saytlardan olinadi.
               const sentVideo = await ctx.api.sendVideo(
                 dbChannel.channelId,
                 ep.videoFileId,
-                { caption, parse_mode: 'HTML' },
+                { caption, parse_mode: 'HTML', supports_streaming: true },
               );
               videoMessages.push({
                 channelId: dbChannel.channelId,

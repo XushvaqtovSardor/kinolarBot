@@ -1104,6 +1104,7 @@ Biz yuklayotgan kinolar turli saytlardan olinadi.
             parse_mode: 'HTML',
             protect_content: true,
             reply_markup: shareKeyboard,
+            supports_streaming: true,
           });
 
           await this.watchHistoryService.recordMovieWatch(user.id, movie.id);
@@ -2136,6 +2137,7 @@ Biz yuklayotgan kinolar turli saytlardan olinadi.
           protect_content: true,
           parse_mode: 'HTML',
           reply_markup: shareKeyboard,
+          supports_streaming: true,
         });
       } else if (episode.videoMessageId) {
         try {
@@ -2231,6 +2233,7 @@ Biz yuklayotgan kinolar turli saytlardan olinadi.
             protect_content: true,
             reply_markup: shareKeyboard,
             parse_mode: 'HTML',
+            supports_streaming: true,
           });
         } else if (movie.videoMessageId) {
           try {
@@ -2268,6 +2271,7 @@ Biz yuklayotgan kinolar turli saytlardan olinadi.
             protect_content: true,
             reply_markup: shareKeyboard,
             parse_mode: 'HTML',
+            supports_streaming: true,
           });
         } else if (episode.videoMessageId) {
           try {
