@@ -1256,6 +1256,7 @@ export class AdminHandler implements OnModuleInit {
             caption,
             reply_markup: keyboard,
             parse_mode: 'HTML',
+            supports_streaming: true,
           },
         );
       } else {
@@ -5395,6 +5396,7 @@ Qaysi rol berasiz?
           await ctx.replyWithVideo(content.posterFileId, {
             caption: messageText,
             reply_markup: keyboard,
+            supports_streaming: true,
           });
         } else {
           await ctx.replyWithPhoto(content.posterFileId, {
@@ -6861,7 +6863,8 @@ Biz yuklayotgan kinolar turli saytlardan olinadi.
             await ctx.api.sendVideo(targetChannelId, poster, {
               caption: formattedCaption,
               reply_markup: keyboard,
-              parse_mode: "HTML"
+              parse_mode: "HTML",
+              supports_streaming: true,
             });
           } else {
             await ctx.api.sendPhoto(targetChannelId, poster, {
@@ -6962,6 +6965,7 @@ Biz yuklayotgan kinolar turli saytlardan olinadi.
                 caption: formattedCaption,
                 reply_markup: keyboard,
                 parse_mode: 'HTML',
+                supports_streaming: true,
               });
             } else {
               await ctx.api.sendPhoto(user.telegramId, poster, {

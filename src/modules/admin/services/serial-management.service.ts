@@ -456,6 +456,7 @@ export class SerialManagementService {
               caption,
               reply_markup: keyboard,
               parse_mode: 'HTML',
+              supports_streaming: true,
             },
           );
         } else {

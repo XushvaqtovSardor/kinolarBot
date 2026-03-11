@@ -1051,6 +1051,7 @@ ${movieDeepLink}`.trim();
               await ctx.replyWithVideo(movie.posterFileId, {
                 caption,
                 reply_markup: keyboard,
+                supports_streaming: true,
               });
             } else {
               await ctx.replyWithPhoto(movie.posterFileId, {
@@ -1222,6 +1223,7 @@ Biz yuklayotgan kinolar turli saytlardan olinadi.
             caption,
             parse_mode: 'HTML',
             reply_markup: keyboard,
+            supports_streaming: true,
           });
         } else {
           await ctx.replyWithPhoto(serial.posterFileId, {
