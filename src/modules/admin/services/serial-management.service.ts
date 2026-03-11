@@ -191,6 +191,20 @@ export class SerialManagementService {
       return;
     }
 
+    // Auto-select if only one field exists
+    if (allFields.length === 1) {
+      this.sessionService.updateSessionData(ctx.from.id, {
+        selectedField: allFields[0],
+        fieldId: allFields[0].id,
+      });
+      this.sessionService.setStep(ctx.from.id, 5); // POSTER step
+      await ctx.reply(
+        `✅ Field: ${allFields[0].name}\n\n🖼 Serial poster rasm yoki videosini yuboring:`,
+        AdminKeyboard.getCancelButton(),
+      );
+      return;
+    }
+
     let message = '📁 Qaysi fieldni tanlaysiz?\n\n';
     allFields.forEach((field, index) => {
       message += `${index + 1}. ${field.name}\n`;

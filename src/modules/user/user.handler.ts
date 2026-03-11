@@ -2327,7 +2327,6 @@ Biz yuklayotgan kinolar turli saytlardan olinadi.
                     },
                   );
                 } catch (editError) {
-                  // If edit fails, caption stays as original
                   this.logger.warn(`[UserHandler.handleMovieEpisodeCallback] Failed to edit caption - Movie: ${movieId}, Episode: ${episodeNumber}`);
                 }
               }

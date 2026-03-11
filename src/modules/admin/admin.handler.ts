@@ -1558,6 +1558,19 @@ export class AdminHandler implements OnModuleInit {
           return;
         }
 
+        // Auto-select if only one field exists
+        if (allFields.length === 1) {
+          this.sessionService.updateSessionData(ctx.from!.id, {
+            selectedField: allFields[0],
+          });
+          this.sessionService.setStep(ctx.from!.id, MovieCreateStep.PHOTO);
+          await ctx.reply(
+            `✅ Field: ${allFields[0].name}\n\n📸 Endi kino rasmi yoki vediosini yuboring:`,
+            AdminKeyboard.getCancelButton(),
+          );
+          break;
+        }
+
         let message = '📁 Qaysi fieldni tanlaysiz?\n\n';
         allFields.forEach((field, index) => {
           message += `${index + 1}. ${field.name}\n`;
@@ -2095,6 +2108,31 @@ ${selectedGenres.length > 0 ? `✅ Tanlangan: ${selectedGenres.join(', ')}` : '�
     if (allFields.length === 0) {
       await ctx.editMessageText('❌ Hech qanday field topilmadi. Avval field yarating.');
       this.sessionService.clearSession(ctx.from.id);
+      return;
+    }
+
+    // Auto-select if only one field exists
+    if (allFields.length === 1) {
+      this.sessionService.updateSessionData(ctx.from.id, {
+        selectedField: allFields[0],
+        fieldId: allFields[0].id,
+      });
+
+      if (session.state === AdminState.CREATING_MOVIE) {
+        this.sessionService.setStep(ctx.from.id, MovieCreateStep.PHOTO);
+        await ctx.editMessageText(`✅ Field: ${allFields[0].name}`);
+        await ctx.reply(
+          '📸 Endi kino rasmi yoki vediosini yuboring:',
+          AdminKeyboard.getCancelButton(),
+        );
+      } else if (session.state === AdminState.CREATING_SERIAL) {
+        this.sessionService.setStep(ctx.from.id, SerialCreateStep.PHOTO);
+        await ctx.editMessageText(`✅ Field: ${allFields[0].name}`);
+        await ctx.reply(
+          '🖼 Serial rasmini (poster) yoki vedio yuboring:',
+          AdminKeyboard.getCancelButton(),
+        );
+      }
       return;
     }
 
@@ -4902,6 +4940,20 @@ Qaysi rol berasiz?
           );
           this.sessionService.clearSession(ctx.from.id);
           return;
+        }
+
+        // Auto-select if only one field exists
+        if (allFields.length === 1) {
+          this.sessionService.updateSessionData(ctx.from.id, {
+            selectedField: allFields[0],
+            fieldId: allFields[0].id,
+          });
+          this.sessionService.setStep(ctx.from.id, SerialCreateStep.PHOTO);
+          await ctx.reply(
+            `✅ Field: ${allFields[0].name}\n\n🖼 Serial rasmini (poster) yoki vedio yuboring:`,
+            AdminKeyboard.getCancelButton(),
+          );
+          break;
         }
 
         let message = '📁 Qaysi fieldni tanlaysiz?\n\n';
